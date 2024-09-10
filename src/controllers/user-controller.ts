@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
+import CryptoJS from 'crypto-js';
 
 import {
   createdMsg,
   invalidCredentialsMsg,
   invalidTokenMsg,
+  notFoundMsg,
   serverErrorMsg,
   userAlreadyExist,
 } from '../constants/messages';
@@ -12,7 +14,7 @@ import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import User from '../models/user';
 import { generateTokenAndSetCookies, generateVerificationToken } from '../utils/generate-functions';
-import { sendVerificationEmail, sendWelcomeEmail } from '../mails/emails';
+import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from '../mails/emails';
 import { IUser } from '../utils/types';
 
 //  CREATE/SIGN-UP OR REGISTER A USER
@@ -167,6 +169,35 @@ export const logOutUser = async (req: Request, res: Response) => {
   try {
     res.clearCookie('token'); // Clear the token cookie
     return res.status(HTTP_STATUS.OK).send({ success: true, message: 'Logout successful' });
+  } catch (error) {
+    logger.error(error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+  }
+};
+//  FORGET PASSWORD
+export const forgetPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      logger.error(invalidCredentialsMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: notFoundMsg });
+    }
+
+    // Generate reset token
+    const resetToken = CryptoJS.lib.WordArray.random(32).toString(); // Generate a random token
+
+    // Save the hashed token and its expiration time (30 minutes)
+    user.resetPasswordToken = resetToken; // Ensure your User model has this field
+    user.resetPasswordExpires = Date.now() + 3_600_000; // 1 hour from now
+    await user.save();
+
+    // Send the password reset email
+    const resetURL = `${process.env.FRONTEND_BASE_URL}/reset-password?token=${resetToken}&email=${email}`;
+    await sendPasswordResetEmail(email, resetURL); // Implement this function to send the email
+
+    return res.status(HTTP_STATUS.OK).send({ success: true, message: 'Password reset link sent to your email!' });
   } catch (error) {
     logger.error(error);
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
