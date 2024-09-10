@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
 
-import { createdMsg, invalidTokenMsg, serverErrorMsg, userAlreadyExist } from '../constants/messages';
+import {
+  createdMsg,
+  invalidCredentialsMsg,
+  invalidTokenMsg,
+  serverErrorMsg,
+  userAlreadyExist,
+} from '../constants/messages';
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import User from '../models/user';
@@ -105,12 +111,54 @@ export const verifyEmail = async (req: Request, res: Response): Promise<Response
 
 //  LOGIN OR SIGNIN USER
 export const signInUser = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
   try {
-    logger.info('get all users');
-    return res.status(HTTP_STATUS.OK);
+    const user = await User.findOne({
+      email,
+    });
+    if (!user) {
+      logger.error(invalidCredentialsMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: invalidCredentialsMsg });
+    }
+
+    // Ensure user.password is a string before comparing
+    if (typeof user.password !== 'string') {
+      logger.error('User password is not a string');
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: serverErrorMsg,
+      });
+    }
+    // Compare provided password with stored hashed password
+    const isMatch = await bcryptjs.compare(password, user.password);
+
+    if (!isMatch) {
+      logger.error(invalidCredentialsMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: invalidCredentialsMsg,
+      });
+    }
+
+    // Generate token and set cookies (assuming a function exists for this)
+    generateTokenAndSetCookies(res, user.id);
+    user.lastLogin = new Date();
+
+    await user.save();
+
+    const userObject = user.toObject();
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Sign-in successful',
+      user: {
+        ...userObject,
+        password: undefined,
+      },
+    });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'Error getting url' });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
 
@@ -118,9 +166,9 @@ export const signInUser = async (req: Request, res: Response) => {
 export const logOutUser = async (req: Request, res: Response) => {
   try {
     res.clearCookie('token'); // Clear the token cookie
-    return res.status(HTTP_STATUS.OK).send({ message: 'Logout successful' });
+    return res.status(HTTP_STATUS.OK).send({ success: true, message: 'Logout successful' });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'Error logging out' });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
