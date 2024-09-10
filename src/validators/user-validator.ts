@@ -36,6 +36,13 @@ export const signUpUserSchema = Joi.object({
     }),
 });
 
+export const emailVerificationSchema = Joi.object({
+  verificationCode: Joi.string().length(6).required().messages({
+    'string.length': 'Verification code must be exactly 6 characters long',
+    'any.required': 'Verification code is required',
+  }),
+});
+
 export const signInUserSchema = Joi.object({
   password: Joi.string().min(8).required().messages({
     'string.min': 'Password must be at least 8 characters long',

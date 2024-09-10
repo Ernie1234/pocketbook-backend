@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
 
-import { createdMsg, userAlreadyExist } from '../constants/messages';
+import { createdMsg, invalidTokenMsg, serverErrorMsg, userAlreadyExist } from '../constants/messages';
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import User from '../models/user';
 import { generateTokenAndSetCookies, generateVerificationToken } from '../utils/generate-functions';
-import { sendVerificationEmail } from '../mails/emails';
+import { sendVerificationEmail, sendWelcomeEmail } from '../mails/emails';
+import { IUser } from '../utils/types';
 
 //  CREATE/SIGN-UP OR REGISTER A USER
 export const signUpUser = async (req: Request, res: Response) => {
@@ -47,7 +48,50 @@ export const signUpUser = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'Error adding url' });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+  }
+};
+
+//  VERIFY USER EMAIL
+export const verifyEmail = async (req: Request, res: Response): Promise<Response> => {
+  const { code } = req.body;
+
+  try {
+    // Find user with the provided verification code and check if the token is not expired
+    const userCode: IUser | null = await User.findOne({
+      verificationToken: code,
+      verificationTokenExpiresAt: { $gt: Date.now() },
+    });
+
+    if (!userCode) {
+      logger.error(invalidTokenMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: invalidTokenMsg,
+      });
+    }
+
+    // Update user verification status
+    userCode.isVerified = true;
+    userCode.verificationToken = undefined;
+    userCode.verificationTokenExpiresAt = undefined;
+    await userCode.save();
+
+    // Send welcome email
+    if (userCode.email && userCode.name) {
+      await sendWelcomeEmail(userCode.email, userCode.name);
+    }
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Email verified successfully',
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: serverErrorMsg,
+    });
   }
 };
 

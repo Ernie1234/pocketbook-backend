@@ -1,3 +1,17 @@
+import { Document } from 'mongoose';
+
+// Define the User interface
+export interface IUser extends Document {
+  email: string;
+  name: string;
+  password: string;
+  isVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpiresAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export type TUserResponse = {
   success: boolean;
   message: string;

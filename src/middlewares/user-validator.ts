@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi, { Schema } from 'joi';
-import { signInUserSchema, signUpUserSchema } from '../validators/user-validator';
+import { emailVerificationSchema, signInUserSchema, signUpUserSchema } from '../validators/user-validator';
 
 const formatJoiError = (error: Joi.ValidationError) => {
   const formattedError: { [key: string]: string } = {};
@@ -22,6 +22,9 @@ const validateFn = <T>(schema: Schema<T>, req: Request, res: Response, next: Nex
 
 export const validateUserSignUp = async (req: Request, res: Response, next: NextFunction) => {
   validateFn(signUpUserSchema, req, res, next);
+};
+export const validateVerificationCode = async (req: Request, res: Response, next: NextFunction) => {
+  validateFn(emailVerificationSchema, req, res, next);
 };
 
 export const validateUserSignIn = async (req: Request, res: Response, next: NextFunction) => {
