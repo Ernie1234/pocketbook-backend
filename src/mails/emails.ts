@@ -39,7 +39,7 @@ export const sendWelcomeEmail = async (email: string, name: string): Promise<voi
     const response = await mailtrapClient.send({
       from: sender,
       to: recipient,
-      template_uuid: 'e65925d1-a9d1-4a40-ae7c-d92b37d593df',
+      template_uuid: process.env.MAILTRAP_TEMPLATE_UUID as string,
       template_variables: {
         company_info_name: 'Pocket Book',
         name,
