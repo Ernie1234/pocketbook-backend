@@ -54,18 +54,20 @@ export const signUpUser = async (req: Request, res: Response) => {
 
 //  VERIFY USER EMAIL
 export const verifyEmail = async (req: Request, res: Response): Promise<Response> => {
-  const { code } = req.body;
+  const { verificationCode } = req.body;
 
   try {
     // Find user with the provided verification code and check if the token is not expired
     const userCode: IUser | null = await User.findOne({
-      verificationToken: code,
+      verificationToken: verificationCode,
       verificationTokenExpiresAt: { $gt: Date.now() },
     });
 
+    logger.info(userCode);
+
     if (!userCode) {
       logger.error(invalidTokenMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).send({
         success: false,
         message: invalidTokenMsg,
       });
@@ -82,9 +84,15 @@ export const verifyEmail = async (req: Request, res: Response): Promise<Response
       await sendWelcomeEmail(userCode.email, userCode.name);
     }
 
+    const userObject = userCode.toObject();
+
     return res.status(HTTP_STATUS.OK).json({
       success: true,
       message: 'Email verified successfully',
+      user: {
+        ...userObject,
+        password: undefined,
+      },
     });
   } catch (error) {
     logger.error(error);
