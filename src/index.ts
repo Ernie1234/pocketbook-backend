@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 
 import logger from './logs/logger';
-import authRoute from './routes/auth-route';
+import userRoute from './routes/user-route';
 import connectDb from './db/connect';
 
 dotenv.config();
@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
 });
-app.use('/api/v1', authRoute);
+app.use('/api/v1', userRoute);
 
 const start = async () => {
   try {
