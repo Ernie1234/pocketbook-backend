@@ -6,15 +6,21 @@ import {
   createdMsg,
   invalidCredentialsMsg,
   invalidTokenMsg,
-  notFoundMsg,
+  noUserMsg,
   serverErrorMsg,
+  successMsg,
   userAlreadyExist,
 } from '../constants/messages';
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import User from '../models/user';
 import { generateTokenAndSetCookies, generateVerificationToken } from '../utils/generate-functions';
-import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from '../mails/emails';
+import {
+  sendPasswordResetEmail,
+  sendResetSuccessEmail,
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from '../mails/emails';
 import { IUser } from '../utils/types';
 
 //  CREATE/SIGN-UP OR REGISTER A USER
@@ -182,7 +188,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
 
     if (!user) {
       logger.error(invalidCredentialsMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: notFoundMsg });
+      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: noUserMsg });
     }
 
     // Generate reset token
@@ -194,7 +200,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
     await user.save();
 
     // Send the password reset email
-    const resetURL = `${process.env.FRONTEND_BASE_URL}/reset-password?token=${resetToken}&email=${email}`;
+    const resetURL = `${process.env.FRONTEND_BASE_URL}/reset-password/${resetToken}`;
     await sendPasswordResetEmail(email, resetURL); // Implement this function to send the email
 
     return res.status(HTTP_STATUS.OK).send({ success: true, message: 'Password reset link sent to your email!' });
@@ -203,3 +209,52 @@ export const forgetPassword = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+
+//  LOGOUT USER
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token } = req.params;
+  const { password } = req.body;
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).send({
+        success: false,
+        message: invalidTokenMsg,
+      });
+    }
+
+    const hashedpassword = await bcryptjs.hash(password, 10);
+
+    user.password = hashedpassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    await sendResetSuccessEmail(user.email as string);
+
+    return res.status(HTTP_STATUS.OK).send({ success: true, message: `Password reset ${successMsg}` });
+  } catch (error) {
+    logger.error(error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+  }
+};
+
+// export const checkAuth = async (req: Request, res: Response) => {
+//   try {
+//     const user = await User.findById(req.userId).select('-password');
+
+//     if (!user) {
+//       logger.error('No UserId from cookie!');
+//       return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: noUserMsg });
+//     }
+
+//     return res.status(HTTP_STATUS.OK).json({ success: true, user });
+//   } catch (error) {
+//     logger.error(error);
+//     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+//   }
+// };

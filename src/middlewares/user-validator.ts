@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi, { Schema } from 'joi';
+
 import {
   emailVerificationSchema,
   forgetPasswordSchema,
+  resetPasswordSchema,
   signInUserSchema,
   signUpUserSchema,
 } from '../validators/user-validator';
@@ -35,6 +37,19 @@ export const validateVerificationCode = async (req: Request, res: Response, next
 export const validateUserSignIn = async (req: Request, res: Response, next: NextFunction) => {
   validateFn(signInUserSchema, req, res, next);
 };
+
 export const validateForgetPassword = async (req: Request, res: Response, next: NextFunction) => {
   validateFn(forgetPasswordSchema, req, res, next);
+};
+
+export const validateResetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const { error } = resetPasswordSchema.validate({ token, password });
+
+  if (error) {
+    return res.status(400).send(formatJoiError);
+  }
+  return next();
 };
