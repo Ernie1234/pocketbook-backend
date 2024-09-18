@@ -11,7 +11,21 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 8000;
 
-app.use(cors());
+// Define allowed origins
+// TO BE REMOVED TO ENVIRONMENT VARIABLE!!!
+const allowedOrigins = [
+  'http://localhost:5173', // React web app
+  'https://your-frontend-url.com', // Production React web app
+  'http://your-react-native-ip:port', // Replace with your React Native server endpoint
+  'https://your-react-native-expo-url.com', // If using Expo
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
