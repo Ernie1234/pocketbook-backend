@@ -67,6 +67,41 @@ export const signUpUser = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+//   RESEND VERIFICATION CODE TO USER
+export const resendCode = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({
+      email,
+    });
+    if (!user) {
+      logger.error(invalidCredentialsMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: invalidCredentialsMsg });
+    }
+
+    const verificationToken = generateVerificationToken();
+
+    generateTokenAndSetCookies(res, user?.id);
+    await sendVerificationEmail(user?.email as string, verificationToken);
+
+    logger.info(`User created: ${user.id}`);
+
+    const userObject = user.toObject();
+
+    return res.status(HTTP_STATUS.CREATED).json({
+      success: true,
+      message: createdMsg,
+      user: {
+        ...userObject,
+        password: undefined, // Do not send password back in the response
+      },
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+  }
+};
 
 //  VERIFY USER EMAIL
 export const verifyEmail = async (req: Request, res: Response): Promise<Response> => {

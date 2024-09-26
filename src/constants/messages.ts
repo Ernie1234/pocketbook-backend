@@ -8,4 +8,5 @@ export const invalidCredentialsMsg = 'Invalid credentials!';
 export const serverErrorMsg = 'Something went wrong!';
 export const pwdRequiredMsg = 'Password is required';
 export const emailRequiredMsg = 'Email is required';
+export const invalidEmailMsg = 'Email must be a valid email address';
 export const unauthorizedMsg = 'Unauthorized!';

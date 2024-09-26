@@ -4,6 +4,7 @@ import Joi, { Schema } from 'joi';
 import {
   emailVerificationSchema,
   forgetPasswordSchema,
+  resendCodeSchema,
   resetPasswordSchema,
   signInUserSchema,
   signUpUserSchema,
@@ -29,6 +30,9 @@ const validateFn = <T>(schema: Schema<T>, req: Request, res: Response, next: Nex
 
 export const validateUserSignUp = async (req: Request, res: Response, next: NextFunction) => {
   validateFn(signUpUserSchema, req, res, next);
+};
+export const validateUserResend = async (req: Request, res: Response, next: NextFunction) => {
+  validateFn(resendCodeSchema, req, res, next);
 };
 export const validateVerificationCode = async (req: Request, res: Response, next: NextFunction) => {
   validateFn(emailVerificationSchema, req, res, next);

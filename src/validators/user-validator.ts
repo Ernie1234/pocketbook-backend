@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { emailRequiredMsg, pwdRequiredMsg } from '../constants/messages';
+import { emailRequiredMsg, invalidEmailMsg, pwdRequiredMsg } from '../constants/messages';
 
 export const signUpUserSchema = Joi.object({
   firstName: Joi.string()
@@ -53,7 +53,18 @@ export const signUpUserSchema = Joi.object({
     .trim()
 
     .messages({
-      'string.email': 'Email must be a valid email address',
+      'string.email': invalidEmailMsg,
+      'any.required': emailRequiredMsg,
+    }),
+});
+export const resendCodeSchema = Joi.object({
+  email: Joi.string()
+    .email()
+    .required()
+    .trim()
+
+    .messages({
+      'string.email': invalidEmailMsg,
       'any.required': emailRequiredMsg,
     }),
 });
