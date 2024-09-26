@@ -25,7 +25,9 @@ import { IUser } from '../utils/types';
 
 //  CREATE/SIGN-UP OR REGISTER A USER
 export const signUpUser = async (req: Request, res: Response) => {
-  const { email, password, name } = req.body;
+  const { email, password, firstName, lastName } = req.body;
+  const name = `${firstName} ${lastName}`;
+
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -196,7 +198,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
 
     // Save the hashed token and its expiration time (30 minutes)
     user.resetPasswordToken = resetToken; // Ensure your User model has this field
-    user.resetPasswordExpires = Date.now() + 3_600_000; // 1 hour from now
+    user.resetPasswordExpires = new Date(Date.now() + 3_600_000); // 1 hour from now
     await user.save();
 
     // Send the password reset email

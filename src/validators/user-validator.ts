@@ -2,35 +2,56 @@ import Joi from 'joi';
 import { emailRequiredMsg, pwdRequiredMsg } from '../constants/messages';
 
 export const signUpUserSchema = Joi.object({
-  name: Joi.string()
-    .alphanum()
-    .min(2)
-    .max(30)
-    .required() // Ensure there's a line break before this
+  firstName: Joi.string()
+    .min(1)
+    .max(50)
+    .required()
+
     .messages({
-      'string.base': 'Name must be a string',
-      'string.empty': 'Name cannot be empty',
-      'string.min': 'Name must be at least 2 characters long',
-      'string.max': 'Name must be at most 30 characters long',
-      'any.required': 'Name is required',
+      'string.base': 'First name must be a string',
+      'string.empty': 'First name cannot be empty',
+      'string.min': 'First name must be at least 1 character long',
+      'string.max': 'First name must be less than or equal to 50 characters long',
+      'any.required': 'First name is required',
+    }),
+
+  lastName: Joi.string()
+    .min(1)
+    .max(50)
+    .required()
+
+    .messages({
+      'string.base': 'Last name must be a string',
+      'string.empty': 'Last name cannot be empty',
+      'string.min': 'Last name must be at least 1 character long',
+      'string.max': 'Last name must be less than or equal to 50 characters long',
+      'any.required': 'Last name is required',
     }),
   password: Joi.string()
     .min(8)
-    .required() // Ensure there's a line break before this
+    .required()
+    .trim()
+
     .messages({
       'string.min': 'Password must be at least 8 characters long',
       'any.required': pwdRequiredMsg,
     }),
+
   confirmPassword: Joi.string()
     .valid(Joi.ref('password'))
-    .required() // Ensure there's a line break before this
+    .required()
+    .trim()
+
     .messages({
       'any.only': 'Passwords must match',
       'any.required': 'Confirm Password is required',
     }),
+
   email: Joi.string()
     .email()
-    .required() // Ensure there's a line break before this
+    .required()
+    .trim()
+
     .messages({
       'string.email': 'Email must be a valid email address',
       'any.required': emailRequiredMsg,

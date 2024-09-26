@@ -35,14 +35,24 @@ const UserSchema = new mongoose.Schema(
     resetPasswordExpires: Date,
     verificationTokenExpiresAt: Date,
     verificationToken: String,
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
-    timestamps: true,
+    // timestamps: true,
     toJSON: {
-      transform: (_, ret) => {
+      transform: (doc, ret) => {
+        delete ret.password;
+        delete ret.__v;
         ret.id = ret._id;
         delete ret._id;
-        delete ret.__v;
+        return ret;
       },
     },
   },
