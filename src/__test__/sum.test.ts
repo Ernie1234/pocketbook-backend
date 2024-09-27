@@ -1,5 +1,8 @@
-import sum from './sum';
+import { describe, expect, test } from '@jest/globals';
+import { sum } from './sum';
 
-const result: number = sum(3, 5);
-
-console.log(result);
+describe('sum module', () => {
+  test('adds 1 + 2 to equal 3', () => {
+    expect(sum(1, 2)).toBe(3);
+  });
+});
