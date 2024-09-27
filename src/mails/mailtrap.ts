@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const TOKEN = process.env.MAILTRAP_TOKEN;
+const TOKEN = process.env.MAILTRAP_TOKEN as string;
 
 if (!TOKEN) {
   throw new Error('Mailtrap token is missing in environment variables');
