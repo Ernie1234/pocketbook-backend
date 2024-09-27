@@ -13,6 +13,7 @@ const port = process.env.PORT || 8000;
 
 // Define allowed origins
 // TO BE REMOVED TO ENVIRONMENT VARIABLE!!!
+// const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 const allowedOrigins = [
   'http://localhost:5173', // React web app
   'https://your-frontend-url.com', // Production React web app
@@ -47,3 +48,4 @@ const start = async () => {
 };
 
 start();
+export default app;
