@@ -26,5 +26,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn' # Change cache type to Yarn
       - run: yarn install # Replace npm ci with yarn install
-      - run: yarn run build --if-present # Replace npm run build with yarn build
+      - run: yarn build # Replace npm run build with yarn build
       - run: yarn test # Replace npm test with yarn test
