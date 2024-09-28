@@ -247,7 +247,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
   }
 };
 
-//  LOGOUT USER
+//  RESET USER PASSWORD
 export const resetPassword = async (req: Request, res: Response) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -279,19 +279,3 @@ export const resetPassword = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
-
-// export const checkAuth = async (req: Request, res: Response) => {
-//   try {
-//     const user = await User.findById(req.userId).select('-password');
-
-//     if (!user) {
-//       logger.error('No UserId from cookie!');
-//       return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: noUserMsg });
-//     }
-
-//     return res.status(HTTP_STATUS.OK).json({ success: true, user });
-//   } catch (error) {
-//     logger.error(error);
-//     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
-//   }
-// };

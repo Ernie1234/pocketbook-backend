@@ -16,6 +16,9 @@ export const verificationEmailTemplate = `
     <div style="text-align: center; margin: 30px 0;">
       <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4CAF50;">{verificationCode}</span>
     </div>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{baseUrl}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify</a>
+    </div>
     <p>Enter this code on the verification page to complete your registration.</p>
     <p>This code will expire in 5 minutes for security reasons.</p>
     <p>If you didn't create an account with us, please ignore this email.</p>

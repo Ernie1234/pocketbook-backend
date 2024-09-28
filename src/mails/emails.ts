@@ -6,6 +6,8 @@ import {
 } from './email-template';
 import { mailtrapClient, sender } from './mailtrap';
 
+const baseUrl = process.env.FRONTEND_BASE_URL as string;
+
 // Define recipient type
 interface Recipient {
   email: string;
@@ -20,7 +22,9 @@ export const sendVerificationEmail = async (email: string, verificationToken: st
       from: sender,
       to: recipient,
       subject: 'Verify your email',
-      html: verificationEmailTemplate.replace('{verificationCode}', verificationToken),
+      html: verificationEmailTemplate
+        .replace('{verificationCode}', verificationToken)
+        .replace(`{baseUrl}`, `${baseUrl}/auth/email-verification?code=${verificationToken}`),
       category: 'Email Verification',
     });
 
