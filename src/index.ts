@@ -16,7 +16,7 @@ const port = process.env.PORT || 8000;
 // const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 const allowedOrigins = [
   'http://localhost:5173', // React web app
-  'https://your-frontend-url.com', // Production React web app
+  'https://pocketbook-kohl.vercel.app/', // Production React web app
   'http://your-react-native-ip:port', // Replace with your React Native server endpoint
   'https://your-react-native-expo-url.com', // If using Expo
 ];
