@@ -15,10 +15,10 @@ const port = process.env.PORT || 8000;
 // TO BE REMOVED TO ENVIRONMENT VARIABLE!!!
 // const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 const allowedOrigins = [
-  'http://localhost:5173', // React web app
-  'https://pocketbook-kohl.vercel.app', // Production React web app
-  'http://your-react-native-ip:port', // Replace with your React Native server endpoint
-  'https://your-react-native-expo-url.com', // If using Expo
+  process.env.REACT_WEB_APP_BASE_URL as string, // React web app
+  process.env.REACT_WEB_APP_PROD_BASE_URL as string, // Production React web app
+  process.env.REACT_NATIVE_APP_BASE_URL as string, // Replace with your React Native server endpoint
+  process.env.REACT_NATIVE_APP_PROD_BASE_URL as string, // If using Expo
 ];
 
 app.use(
