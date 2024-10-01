@@ -11,9 +11,6 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 8000;
 
-// Define allowed origins
-// TO BE REMOVED TO ENVIRONMENT VARIABLE!!!
-// const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 const allowedOrigins = [
   process.env.REACT_WEB_APP_BASE_URL as string, // React web app
   process.env.REACT_WEB_APP_PROD_BASE_URL as string, // Production React web app
