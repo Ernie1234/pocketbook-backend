@@ -1,8 +1,7 @@
 import Joi from 'joi';
-import { pwdRequiredMsg } from '../constants/messages';
 
 export const createCommoditySchema = Joi.object({
-  name: Joi.string().min(1).max(50).required().messages({
+  commodityName: Joi.string().min(1).max(50).required().messages({
     'string.base': 'Commodity name must be a string',
     'string.empty': 'Commodity name cannot be empty',
     'string.min': 'Commodity name must be at least 1 character long',
@@ -59,4 +58,51 @@ export const slugValidationSchema = Joi.object({
       'string.max': 'Slug must be less than or equal to 100 characters long',
       'any.required': 'Slug is required',
     }),
+});
+// Define the commodity name validation schema
+export const commodityNameValidationSchema = Joi.object({
+  commodityName: Joi.string()
+    .min(1) // At least 1 character long
+    .max(100) // Adjust max length as needed
+    .required() // Required field
+    .messages({
+      'string.base': 'Commodity name must be a string',
+      'string.empty': 'Commodity name cannot be empty',
+      'string.min': 'Commodity name must be at least 1 character long',
+      'string.max': 'Commodity name must be less than or equal to 100 characters long',
+      'any.required': 'Commodity name is required',
+    }),
+});
+// Define the update commodity validation schema
+export const updateCommodityValidationSchema = Joi.object({
+  commodityName: Joi.string().min(1).max(50).required().messages({
+    'string.base': 'Commodity name must be a string',
+    'string.empty': 'Commodity name cannot be empty',
+    'string.min': 'Commodity name must be at least 1 character long',
+    'string.max': 'Commodity name must be less than or equal to 50 characters long',
+    'any.required': 'Commodity name is required',
+  }),
+  price: Joi.number().greater(0).optional().messages({
+    'number.base': 'Price must be a number',
+    'number.greater': 'Price must be greater than 0',
+  }),
+  maxQuantity: Joi.number().integer().greater(Joi.ref('minQuantity')).optional().messages({
+    'number.base': 'Maximum quantity must be a number',
+    'number.integer': 'Maximum quantity must be an integer',
+    'number.greater': 'Maximum quantity must be greater than minimum quantity',
+  }),
+  minQuantity: Joi.number().integer().min(1).optional().messages({
+    'number.base': 'Minimum quantity must be a number',
+    'number.integer': 'Minimum quantity must be an integer',
+    'number.min': 'Minimum quantity must be at least 1',
+  }),
+}).custom((value, helpers) => {
+  // Ensure at least one of price, maxQuantity, or minQuantity is present
+  const { price, maxQuantity, minQuantity } = value;
+  if (!price && !maxQuantity && !minQuantity) {
+    return helpers.error('any.required', {
+      message: 'At least one of price, maxQuantity, or minQuantity is required.',
+    });
+  }
+  return value; // Return the validated value
 });

@@ -1,34 +1,43 @@
 import { Request, Response } from 'express';
 
-import { serverErrorMsg, invalidCredentialsMsg } from '../constants/messages';
+import {
+  serverErrorMsg,
+  commodityExistMsg,
+  noUserMsg,
+  noCommodityMsg,
+  successCommodityMsg,
+  unauthorizedMsg,
+  updateSuccessMsg,
+} from '../constants/messages';
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import User from '../models/user';
 import { Price } from '../models/price';
 import Commodity from '../models/commodity';
 import { Notification } from '../models/notification';
+import user from '../models/user';
 
 //  CREATE A COMMODITY
 export const createCommodity = async (req: Request, res: Response) => {
-  const { name, description, unit, minQuantity, maxQuantity, color, price } = req.body;
+  const { commodityName, description, unit, minQuantity, maxQuantity, color, price } = req.body;
   try {
     const user = await User.findById(req.userId).select('-password'); // No type error
 
     if (!user) {
-      logger.error(invalidCredentialsMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'User not found' });
+      logger.error(noUserMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: noUserMsg });
     }
 
     // Check if a commodity with the same name already exists
-    const existingCommodity = await Commodity.findOne({ commodityName: name });
+    const existingCommodity = await Commodity.findOne({ commodityName });
     if (existingCommodity) {
-      logger.error('Commodity with this name already exists');
-      return res.status(HTTP_STATUS.CONFLICT).json({ message: 'Commodity with this name already exists' });
+      logger.error(commodityExistMsg);
+      return res.status(HTTP_STATUS.CONFLICT).json({ message: commodityExistMsg });
     }
 
     // Create both the commodity and the price at the same time
     const newCommodity = await Commodity.create({
-      commodityName: name,
+      commodityName,
       description,
       unit,
       minQuantity,
@@ -53,7 +62,7 @@ export const createCommodity = async (req: Request, res: Response) => {
     const notifications = users.map((user) => ({
       userId: user._id,
       title: 'New Commodity',
-      body: `A new commodity "${name}" has been added`,
+      body: `A new commodity "${commodityName}" has been added`,
       createdAt: new Date(),
     }));
 
@@ -79,7 +88,7 @@ export const getAllCommodities = async (req: Request, res: Response) => {
 
     return res.status(HTTP_STATUS.OK).json({
       success: true,
-      message: 'Commodity fetched successfully!',
+      message: successCommodityMsg,
       commodities,
     });
   } catch (error) {
@@ -93,12 +102,11 @@ export const getCommodityBySlug = async (req: Request, res: Response) => {
   const { slug } = req.params; // Extract slug from request parameters
 
   try {
-    const commodity = await Commodity.findOne({ slug })
-      .populate('user') // Populate user reference
-      .populate('prices'); // Populate prices reference
+    const commodity = await Commodity.findOne({ slug }).populate('prices'); // Populate prices reference
 
     if (!commodity) {
-      return res.status(HTTP_STATUS.NOT_FOUND).send({ message: 'Commodity not found' });
+      logger.error(noCommodityMsg);
+      return res.status(HTTP_STATUS.NOT_FOUND).send({ message: noCommodityMsg });
     }
 
     return res.status(HTTP_STATUS.OK).send(commodity);
@@ -112,31 +120,75 @@ export const getCommodityBySlug = async (req: Request, res: Response) => {
 export const getCommodityByName = async (req: Request, res: Response) => {
   const { commodityName } = req.body;
   try {
-    const commodity = await Commodity.findOne({ commodityName }) // Adjusted to match schema field
-      .select('prices'); // Only select prices
-    return commodity;
+    const commodity = await Commodity.findOne({ commodityName }).populate('price');
+
+    if (!commodity) {
+      logger.error(noCommodityMsg);
+      return res.status(HTTP_STATUS.NOT_FOUND).send({ message: noCommodityMsg });
+    }
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: successCommodityMsg,
+      commodity,
+    });
   } catch (error) {
     logger.error(error);
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+// UPDATE COMMODITY DETAILS
+export const updateCommodity = async (req: Request, res: Response) => {
+  const { commodityName, price, maxQuantity, minQuantity } = req.body; // Extract slug from request parameters
 
-// Get commodity names and details
-export const getCommodityName = async (req: Request, res: Response) => {
   try {
-    const commodities = await Commodity.find({})
-      .populate('prices') // Populate prices reference
-      .select({
-        commodityName: true, // Changed to match schema field
-        unit: true,
-        minQuantity: true,
-        maxQuantity: true,
-        prices: {
-          price: true,
-        },
-      })
-      .sort({ createdAt: -1 }); // Sort by createdAt in descending order
-    return commodities;
+    const user = await User.findById(req.userId).select('-password');
+
+    if (!user) {
+      logger.error(noUserMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: noUserMsg });
+    }
+
+    const commodity = await Commodity.findOne({ commodityName }).populate('prices');
+
+    if (!commodity) {
+      logger.error(noCommodityMsg);
+      return res.status(HTTP_STATUS.NOT_FOUND).send({ message: noCommodityMsg });
+    }
+
+    // Check user role for authorization
+    if (user.role !== 'ADMIN') {
+      logger.error('Unauthorized user');
+      return res.status(HTTP_STATUS.UNAUTHORIZED).send({ message: unauthorizedMsg });
+    }
+
+    // Update maxQuantity and minQuantity if provided
+    if (maxQuantity !== undefined) {
+      commodity.maxQuantity = maxQuantity;
+    }
+
+    if (minQuantity !== undefined) {
+      commodity.minQuantity = minQuantity;
+    }
+
+    // Create a new price document if price is provided
+    let addedPrice;
+    if (price !== undefined) {
+      const newPrice = new Price({ price, commodityId: commodity.id });
+      addedPrice = await newPrice.save(); // Save the new price document
+
+      // Push the new price's ObjectId into the commodity's prices array
+      commodity.prices.push(addedPrice._id);
+    }
+    await commodity.save(); // Save the updated commodity
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: updateSuccessMsg,
+      commodity: {
+        ...commodity.toObject(), // Convert to plain object
+        prices: [...commodity.prices, addedPrice], // Include the newly added price
+      },
+    });
   } catch (error) {
     logger.error(error);
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
