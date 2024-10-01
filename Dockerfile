@@ -2,10 +2,12 @@ FROM node:alpine
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
 RUN yarn install
 
 COPY . .
 
-CMD ["yarn", "start"]
+RUN yarn build  # Make sure this command builds your project
+
+CMD ["node", "dist/index.js"]
