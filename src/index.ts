@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 
 import logger from './logs/logger';
 import userRoute from './routes/user-route';
+import commodityRoute from './routes/commodity-route';
 import connectDb from './db/connect';
 
 dotenv.config();
@@ -35,6 +36,7 @@ app.get('/healthz', (req: Request, res: Response) => {
   res.send('Working in good health');
 });
 app.use('/api/v1', userRoute);
+app.use('/api/v1', commodityRoute);
 
 const start = async () => {
   try {

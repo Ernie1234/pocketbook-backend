@@ -28,8 +28,8 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'user'],
-      default: 'user',
+      enum: ['ADMIN', 'USER'],
+      default: 'USER',
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
@@ -43,6 +43,36 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    commodities: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Commodity',
+      },
+    ],
+    notifications: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Notification',
+      },
+    ],
+    transactions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transaction',
+      },
+    ],
+    portfolios: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Portfolio',
+      },
+    ],
+    sells: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Sell',
+      },
+    ],
   },
   {
     // timestamps: true,

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi, { Schema } from 'joi';
 
-import { createCommoditySchema } from '../validators/commodity-validator';
+import { createCommoditySchema, slugValidationSchema } from '../validators/commodity-validator';
 
 const formatJoiError = (error: Joi.ValidationError) => {
   const formattedError: { [key: string]: string } = {};
@@ -23,4 +23,7 @@ const validateFn = <T>(schema: Schema<T>, req: Request, res: Response, next: Nex
 
 export const validateCreateCommodity = async (req: Request, res: Response, next: NextFunction) => {
   validateFn(createCommoditySchema, req, res, next);
+};
+export const validateCommoditySlug = async (req: Request, res: Response, next: NextFunction) => {
+  validateFn(slugValidationSchema, req, res, next);
 };
