@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import logger from './logs/logger';
 import userRoute from './routes/user-route';
 import commodityRoute from './routes/commodity-route';
+import portfolioRoute from './routes/portfolio-route';
 import connectDb from './db/connect';
 
 dotenv.config();
@@ -35,8 +36,10 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/healthz', (req: Request, res: Response) => {
   res.send('Working in good health');
 });
+
 app.use('/api/v1', userRoute);
 app.use('/api/v1', commodityRoute);
+app.use('/api/v1', portfolioRoute);
 
 const start = async () => {
   try {

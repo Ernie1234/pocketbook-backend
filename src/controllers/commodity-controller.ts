@@ -177,7 +177,7 @@ export const updateCommodity = async (req: Request, res: Response) => {
       addedPrice = await newPrice.save(); // Save the new price document
 
       // Push the new price's ObjectId into the commodity's prices array
-      commodity.prices.push(addedPrice._id);
+      return commodity.prices.push(addedPrice._id);
     }
     await commodity.save(); // Save the updated commodity
 
