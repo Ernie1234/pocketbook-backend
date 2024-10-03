@@ -38,7 +38,7 @@ export const createTransaction = async (req: Request, res: Response) => {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: noCommodityMsg });
     }
 
-    if (commodity.maxQuantity === undefined || commodity.maxQuantity < quantity || commodity.maxQuantity <= 0) {
+    if (commodity.quantity === undefined || commodity.quantity < quantity || commodity.quantity <= 0) {
       logger.error(InsufficientCommodityMsg);
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: InsufficientCommodityMsg });
     }
@@ -74,9 +74,9 @@ export const createTransaction = async (req: Request, res: Response) => {
       await portfolio.save();
     }
 
-    // Subtract the quantity from the commodity's maxQuantity
-    if (commodity.maxQuantity !== undefined && commodity.maxQuantity >= quantity) {
-      commodity.maxQuantity -= quantity;
+    // Subtract the quantity from the commodity's quantity
+    if (commodity.quantity !== undefined && commodity.quantity >= quantity) {
+      commodity.quantity -= quantity;
       await commodity.save(); // Save the updated commodity
     } else {
       logger.error(InsufficientCommodityMsg);

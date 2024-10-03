@@ -18,15 +18,11 @@ const commoditySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  minQuantity: {
-    type: Number,
-    required: true,
-  },
   color: {
     type: String,
     require: true,
   },
-  maxQuantity: {
+  quantity: {
     type: Number,
     required: true,
   },

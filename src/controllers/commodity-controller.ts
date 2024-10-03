@@ -15,11 +15,10 @@ import User from '../models/user';
 import { Price } from '../models/price';
 import Commodity from '../models/commodity';
 import { Notification } from '../models/notification';
-import user from '../models/user';
 
 //  CREATE A COMMODITY
 export const createCommodity = async (req: Request, res: Response) => {
-  const { commodityName, description, unit, minQuantity, maxQuantity, color, price } = req.body;
+  const { commodityName, description, unit, quantity, color, price } = req.body;
   try {
     const user = await User.findById(req.userId).select('-password'); // No type error
 
@@ -40,8 +39,7 @@ export const createCommodity = async (req: Request, res: Response) => {
       commodityName,
       description,
       unit,
-      minQuantity,
-      maxQuantity,
+      quantity,
       color,
       userId: user._id,
       prices: [], // Initialize with an empty array
@@ -136,9 +134,10 @@ export const getCommodityByName = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+
 // UPDATE COMMODITY DETAILS
 export const updateCommodity = async (req: Request, res: Response) => {
-  const { commodityName, price, maxQuantity, minQuantity } = req.body; // Extract slug from request parameters
+  const { commodityName, price, quantity } = req.body; // Extract slug from request parameters
 
   try {
     const user = await User.findById(req.userId).select('-password');
@@ -161,13 +160,9 @@ export const updateCommodity = async (req: Request, res: Response) => {
       return res.status(HTTP_STATUS.UNAUTHORIZED).send({ message: unauthorizedMsg });
     }
 
-    // Update maxQuantity and minQuantity if provided
-    if (maxQuantity !== undefined) {
-      commodity.maxQuantity = maxQuantity;
-    }
-
-    if (minQuantity !== undefined) {
-      commodity.minQuantity = minQuantity;
+    // Update quantity and minQuantity if provided
+    if (quantity !== undefined) {
+      commodity.quantity = quantity;
     }
 
     // Create a new price document if price is provided
