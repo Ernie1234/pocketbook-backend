@@ -1,5 +1,6 @@
 services:
   mongo:
+    container_name: 'pocket-book-mongo-service'
     image: 'mongo'
     restart: unless-stopped
     ports:
@@ -12,6 +13,7 @@ services:
     volumes:
       - ./data:/data/db
   server:
+    container_name: 'pocket-book-server'
     build:
       dockerfile: Dockerfile
       context: .

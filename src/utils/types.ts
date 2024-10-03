@@ -12,6 +12,19 @@ export interface IUser extends Document {
   updatedAt?: Date;
 }
 
+export const TransactionType = {
+  BOUGHT: 'BOUGHT',
+  SOLD: 'SOLD',
+  SWAP: 'SWAP',
+  SEND: 'SEND',
+  RECEIVED: 'RECEIVED',
+};
+export const TransactionStatusType = {
+  SUCCESS: 'COMPLETED',
+  FAIl: 'FAILED',
+  PENDING: 'PENDING',
+};
+
 export type TUserResponse = {
   success: boolean;
   message: string;

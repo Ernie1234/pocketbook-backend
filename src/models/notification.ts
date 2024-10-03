@@ -1,7 +1,13 @@
-/* eslint-disable no-param-reassign */
 import mongoose from 'mongoose';
 
-const NotificationSchema = new mongoose.Schema(
+export interface INotification extends mongoose.Document {
+  title: string;
+  body: string;
+  createdAt: Date;
+  userId: mongoose.Types.ObjectId;
+}
+
+const NotificationSchema = new mongoose.Schema<INotification>(
   {
     title: {
       type: String,
@@ -30,7 +36,8 @@ const NotificationSchema = new mongoose.Schema(
         return ret;
       },
     },
+    timestamps: true,
   },
 );
 
-export const Notification = mongoose.model('Notification', NotificationSchema);
+export const Notification = mongoose.model<INotification>('Notification', NotificationSchema);

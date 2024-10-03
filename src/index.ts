@@ -7,6 +7,7 @@ import logger from './logs/logger';
 import userRoute from './routes/user-route';
 import commodityRoute from './routes/commodity-route';
 import portfolioRoute from './routes/portfolio-route';
+import transactionRoute from './routes/transaction-route';
 import connectDb from './db/connect';
 
 dotenv.config();
@@ -40,6 +41,7 @@ app.get('/healthz', (req: Request, res: Response) => {
 app.use('/api/v1', userRoute);
 app.use('/api/v1', commodityRoute);
 app.use('/api/v1', portfolioRoute);
+app.use('/api/v1', transactionRoute);
 
 const start = async () => {
   try {

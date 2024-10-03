@@ -1,21 +1,20 @@
-/* eslint-disable no-param-reassign */
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
-const PortfolioSchema = new mongoose.Schema(
+// Define the Portfolio interface
+export interface IPortfolio extends Document {
+  commodityName: string;
+  balance: number;
+  totalQuantity: number;
+  userId: mongoose.Types.ObjectId;
+}
+
+// Define the Portfolio schema
+const PortfolioSchema = new mongoose.Schema<IPortfolio>(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
     commodityName: {
       type: String,
       unique: true,
       required: true,
-    },
-    color: {
-      type: String,
-      default: null,
     },
     balance: {
       type: Number,
@@ -25,31 +24,24 @@ const PortfolioSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
   },
   {
+    timestamps: true, // Automatically handles createdAt and updatedAt fields
     toJSON: {
       transform: (doc, ret) => {
-        ret.id = ret._id;
-        delete ret._id;
-        delete ret.__v;
+        ret.id = ret._id; // Create a virtual id field
+        delete ret._id; // Remove the original _id field
+        delete ret.__v; // Remove the version key
         return ret;
       },
     },
   },
 );
 
-// Update updatedAt field before saving
-PortfolioSchema.pre('save', function (next) {
-  this.updatedAt = new Date();
-  next();
-});
-
-export const Portfolio = mongoose.model('Portfolio', PortfolioSchema);
+// Create and export the Portfolio model
+export const Portfolio = mongoose.model<IPortfolio>('Portfolio', PortfolioSchema);

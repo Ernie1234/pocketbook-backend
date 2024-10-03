@@ -1,14 +1,29 @@
-/* eslint-disable no-param-reassign */
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
-const TransactionSchema = new mongoose.Schema(
+import { TransactionStatusType, TransactionType } from '../utils/types';
+
+// Define the Transaction interface
+export interface ITransaction extends Document {
+  commodityName: string;
+  type: string; // Assuming TransactionType is an enum
+  quantity: number | null; // Allow null for optional quantity
+  status?: string; // Optional status
+  reference?: string; // Optional reference
+  unit: string;
+  price: number;
+  userId: mongoose.Types.ObjectId;
+}
+
+// Define the Transaction schema
+const TransactionSchema = new mongoose.Schema<ITransaction>(
   {
     commodityName: {
       type: String,
       required: true,
     },
     type: {
-      type: String, // Consider using an enum for transaction types
+      type: String,
+      enum: TransactionType,
       required: true,
     },
     quantity: {
@@ -17,7 +32,7 @@ const TransactionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      default: null,
+      enum: TransactionStatusType,
     },
     reference: {
       type: String,
@@ -31,36 +46,19 @@ const TransactionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
   },
   {
+    timestamps: true, // Automatically handles createdAt and updatedAt fields
     toJSON: {
       transform: (doc, ret) => {
-        ret.id = ret._id;
-        delete ret._id;
-        delete ret.__v;
+        ret.id = ret._id; // Create a virtual id field
+        delete ret._id; // Remove the original _id field
+        delete ret.__v; // Remove the version key
         return ret;
       },
     },
   },
 );
 
-// Update updatedAt field before saving
-TransactionSchema.pre('save', function (next) {
-  this.updatedAt = new Date();
-  next();
-});
-
-export const Transaction = mongoose.model('Transaction', TransactionSchema);
+// Create and export the Transaction model
+export const Transaction = mongoose.model<ITransaction>('Transaction', TransactionSchema);
