@@ -69,7 +69,7 @@ export const createCommodity = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.OK).json({
       success: true,
       message: 'Commodity added successfully!',
-      newCommodity,
+      data: newCommodity,
     });
   } catch (error) {
     logger.error(error);
@@ -87,7 +87,7 @@ export const getAllCommodities = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.OK).json({
       success: true,
       message: successCommodityMsg,
-      commodities,
+      data: commodities,
     });
   } catch (error) {
     logger.error(error);
@@ -107,7 +107,11 @@ export const getCommodityBySlug = async (req: Request, res: Response) => {
       return res.status(HTTP_STATUS.NOT_FOUND).send({ message: noCommodityMsg });
     }
 
-    return res.status(HTTP_STATUS.OK).send(commodity);
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: successCommodityMsg,
+      data: commodity,
+    });
   } catch (error) {
     logger.error(error);
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
@@ -127,7 +131,7 @@ export const getCommodityByName = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.OK).json({
       success: true,
       message: successCommodityMsg,
-      commodity,
+      data: commodity,
     });
   } catch (error) {
     logger.error(error);
@@ -182,7 +186,7 @@ export const updateCommodity = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.OK).json({
       success: true,
       message: updateSuccessMsg,
-      commodity: {
+      data: {
         ...commodity.toObject(), // Convert to plain object
         prices: commodity.prices, // Include updated prices
       },
