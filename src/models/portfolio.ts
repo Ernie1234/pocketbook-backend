@@ -6,6 +6,7 @@ export interface IPortfolio extends Document {
   balance: number;
   totalQuantity: number;
   userId: mongoose.Types.ObjectId;
+  commodityId: mongoose.Types.ObjectId; // Include the commodity reference
 }
 
 // Define the Portfolio schema
@@ -13,25 +14,30 @@ const PortfolioSchema = new mongoose.Schema<IPortfolio>(
   {
     commodityName: {
       type: String,
-      unique: true,
+      unique: true, // Ensure commodity names are unique
+      required: true,
+    },
+    commodityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Commodity', // Reference to the Commodity model
       required: true,
     },
     balance: {
       type: Number,
-      default: 0,
+      default: 0, // Default balance is 0
     },
     totalQuantity: {
       type: Number,
-      default: 0,
+      default: 0, // Default total quantity is 0
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'User', // Reference to the User model
       required: true,
     },
   },
   {
-    timestamps: true, // Automatically handles createdAt and updatedAt fields
+    timestamps: true, // Automatically adds createdAt and updatedAt
     toJSON: {
       transform: (doc, ret) => {
         ret.id = ret._id; // Create a virtual id field

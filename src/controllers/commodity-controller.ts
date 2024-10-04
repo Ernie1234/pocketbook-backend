@@ -137,7 +137,7 @@ export const getCommodityByName = async (req: Request, res: Response) => {
 
 // UPDATE COMMODITY DETAILS
 export const updateCommodity = async (req: Request, res: Response) => {
-  const { commodityName, price, quantity } = req.body; // Extract slug from request parameters
+  const { commodityName, price, quantity } = req.body; // Extract from request body
 
   try {
     const user = await User.findById(req.userId).select('-password');
@@ -151,29 +151,32 @@ export const updateCommodity = async (req: Request, res: Response) => {
 
     if (!commodity) {
       logger.error(noCommodityMsg);
-      return res.status(HTTP_STATUS.NOT_FOUND).send({ message: noCommodityMsg });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ message: noCommodityMsg });
     }
 
     // Check user role for authorization
     if (user.role !== 'ADMIN') {
       logger.error('Unauthorized user');
-      return res.status(HTTP_STATUS.UNAUTHORIZED).send({ message: unauthorizedMsg });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: unauthorizedMsg });
     }
 
-    // Update quantity and minQuantity if provided
-    if (quantity !== undefined) {
+    // Update quantity if provided
+    if (quantity !== undefined && commodity.quantity === 0) {
       commodity.quantity = quantity;
+    } else if (quantity !== undefined && commodity.quantity) {
+      commodity.quantity += quantity;
     }
 
     // Create a new price document if price is provided
     let addedPrice;
     if (price !== undefined) {
-      const newPrice = new Price({ price, commodityId: commodity.id });
+      const newPrice = new Price({ price, commodityId: commodity._id });
       addedPrice = await newPrice.save(); // Save the new price document
 
       // Push the new price's ObjectId into the commodity's prices array
-      return commodity.prices.push(addedPrice._id);
+      commodity.prices.push(addedPrice._id);
     }
+
     await commodity.save(); // Save the updated commodity
 
     return res.status(HTTP_STATUS.OK).json({
@@ -181,7 +184,7 @@ export const updateCommodity = async (req: Request, res: Response) => {
       message: updateSuccessMsg,
       commodity: {
         ...commodity.toObject(), // Convert to plain object
-        prices: [...commodity.prices, addedPrice], // Include the newly added price
+        prices: commodity.prices, // Include updated prices
       },
     });
   } catch (error) {

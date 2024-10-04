@@ -66,6 +66,7 @@ export const createTransaction = async (req: Request, res: Response) => {
         commodityName,
         totalQuantity: quantity,
         balance: price,
+        commodityId: commodity.id,
       });
       await newPortfolio.save();
     } else {

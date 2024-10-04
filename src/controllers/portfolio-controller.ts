@@ -17,7 +17,7 @@ export const getPortfolio = async (req: Request, res: Response) => {
     }
 
     // Fetch portfolio commodities for the given user
-    const portfolio = await Portfolio.find({ userId: user.id }).populate('commodity');
+    const portfolio = await Portfolio.find({ userId: user._id }).populate('commodityId');
 
     return res.status(HTTP_STATUS.OK).json({
       success: true,
