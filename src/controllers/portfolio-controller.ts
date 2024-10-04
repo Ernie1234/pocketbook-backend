@@ -6,7 +6,7 @@ import logger from '../logs/logger';
 import User from '../models/user';
 import { Portfolio } from '../models/portfolio';
 
-//  CREATE A COMMODITY
+//  GET ALL PORTFOLIO
 export const getPortfolio = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(req.userId).select('-password');

@@ -103,3 +103,40 @@ export const createTransaction = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+
+//  GET ALL TRANSACTIONS
+export const getAllTransactions = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+
+    if (!user) {
+      logger.error(noUserMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: noUserMsg });
+    }
+
+    const userId = user.id; // Get the user ID
+
+    // Fetch transactions for the user, ordered by createdAt in descending order
+    const transactions = await Transaction.find({ userId })
+      .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+      .exec(); // Execute the query
+
+    // Check if transactions are empty
+    if (transactions.length === 0) {
+      return res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: 'No transactions found for this user.',
+        data: [],
+      });
+    }
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: fetchedSuccessMsg,
+      data: transactions,
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+  }
+};

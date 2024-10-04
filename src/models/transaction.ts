@@ -46,6 +46,11 @@ const TransactionSchema = new mongoose.Schema<ITransaction>(
       type: Number,
       required: true,
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User', // Reference to the User model
+      required: true,
+    },
   },
   {
     timestamps: true, // Automatically handles createdAt and updatedAt fields
