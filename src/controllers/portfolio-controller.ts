@@ -22,7 +22,7 @@ export const getPortfolio = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.OK).json({
       success: true,
       message: fetchedSuccessMsg,
-      portfolio,
+      data: portfolio,
     });
   } catch (error) {
     logger.error(error);
