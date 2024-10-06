@@ -45,7 +45,7 @@ export const validateCommoditySlug = async (req: Request, res: Response, next: N
   validateFn(slugValidationSchema, req.params, req, res, next);
 };
 export const validateCommodityName = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(commodityNameValidationSchema, req.body, req, res, next);
+  validateFn(commodityNameValidationSchema, req.params, req, res, next);
 };
 export const validateCommodityUpdate = async (req: Request, res: Response, next: NextFunction) => {
   validateFn(updateCommodityValidationSchema, req.body, req, res, next);

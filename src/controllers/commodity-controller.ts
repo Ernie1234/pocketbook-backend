@@ -120,7 +120,7 @@ export const getCommodityBySlug = async (req: Request, res: Response) => {
 
 // Get commodity by name
 export const getCommodityByName = async (req: Request, res: Response) => {
-  const { commodityName } = req.body;
+  const { commodityName } = req.params;
   try {
     const commodity = await Commodity.findOne({ commodityName }).populate('price');
 
