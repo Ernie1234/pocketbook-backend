@@ -31,13 +31,18 @@ describe('User Controller', () => {
         lastName: 'Doe',
       };
 
-      (User.findOne as jest.Mock).mockResolvedValue(null); // No existing user
+      // Mock User.findOne to return null, simulating no existing user
+      (User.findOne as jest.Mock).mockResolvedValue(null);
       (User.prototype.save as jest.Mock).mockResolvedValue(newUser);
+
+      // Mock the utility functions
       (generateTokenAndSetCookies as jest.Mock).mockImplementation(() => {});
       (sendVerificationEmail as jest.Mock).mockResolvedValue(true);
 
+      // Make the request to the signup endpoint
       const response = await request(app).post('/api/signup').send(newUser);
 
+      // Assert the response
       expect(response.status).toBe(HTTP_STATUS.CREATED);
       expect(response.body.success).toBe(true);
       expect(response.body.user.email).toBe(newUser.email);
@@ -52,10 +57,13 @@ describe('User Controller', () => {
         lastName: 'Doe',
       };
 
-      (User.findOne as jest.Mock).mockResolvedValue(existingUser); // User exists
+      // Mock User.findOne to return the existing user
+      (User.findOne as jest.Mock).mockResolvedValue(existingUser);
 
+      // Make the request to the signup endpoint
       const response = await request(app).post('/api/signup').send(existingUser);
 
+      // Assert the response
       expect(response.status).toBe(HTTP_STATUS.CONFLICT);
       expect(response.body.message).toBe('User already exists'); // Adjust according to your message
       expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('User already exists'));
@@ -69,10 +77,13 @@ describe('User Controller', () => {
         lastName: 'Doe',
       };
 
-      (User.findOne as jest.Mock).mockRejectedValue(new Error('Database error')); // Simulate an error
+      // Mock User.findOne to simulate a database error
+      (User.findOne as jest.Mock).mockRejectedValue(new Error('Database error'));
 
+      // Make the request to the signup endpoint
       const response = await request(app).post('/api/signup').send(newUser);
 
+      // Assert the response
       expect(response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
       expect(response.body.message).toBe('Internal server error'); // Adjust according to your message
       expect(logger.error).toHaveBeenCalledWith(expect.any(Error));
