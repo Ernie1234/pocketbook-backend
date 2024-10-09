@@ -1,18 +1,21 @@
 import request from 'supertest';
 import express from 'express';
-
 import { generateTokenAndSetCookies } from '../utils/generate-functions';
 import { sendVerificationEmail } from '../mails/emails';
 import User from '../models/user';
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
+import { resendCode, signUpUser } from '../controllers/user-controller';
 
 // Mock dependencies
-jest.mock('../models/User');
+jest.mock('../models/user'); // Ensure correct case in import
 jest.mock('../logs/logger');
-jest.mock('../mails/emails'); // Mock the email sending utility
+jest.mock('../mails/emails');
 
 const app = express();
+app.use(express.json()); // Middleware to parse JSON bodies
+app.post('/api/signup', signUpUser); // Route for sign up
+app.post('/api/resend-verification', resendCode); // Route for resending verification
 
 describe('User Controller', () => {
   beforeEach(() => {
@@ -33,9 +36,7 @@ describe('User Controller', () => {
       (generateTokenAndSetCookies as jest.Mock).mockImplementation(() => {});
       (sendVerificationEmail as jest.Mock).mockResolvedValue(true);
 
-      const response = await request(app)
-        .post('/api/signup') // Replace with your actual route
-        .send(newUser);
+      const response = await request(app).post('/api/signup').send(newUser);
 
       expect(response.status).toBe(HTTP_STATUS.CREATED);
       expect(response.body.success).toBe(true);
@@ -90,9 +91,7 @@ describe('User Controller', () => {
       (generateTokenAndSetCookies as jest.Mock).mockImplementation(() => {});
       (sendVerificationEmail as jest.Mock).mockResolvedValue(true);
 
-      const response = await request(app)
-        .post('/api/resend-verification') // Replace with your actual route
-        .send(userEmail);
+      const response = await request(app).post('/api/resend-verification').send(userEmail);
 
       expect(response.status).toBe(HTTP_STATUS.CREATED);
       expect(response.body.success).toBe(true);
