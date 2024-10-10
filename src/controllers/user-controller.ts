@@ -67,6 +67,7 @@ export const signUpUser = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+
 //   RESEND VERIFICATION CODE TO USER
 export const resendCode = async (req: Request, res: Response) => {
   const { email } = req.body;

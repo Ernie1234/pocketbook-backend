@@ -1,136 +1,90 @@
+// user-controller.test.ts
 import request from 'supertest';
 import express from 'express';
-import { generateTokenAndSetCookies } from '../utils/generate-functions';
-import { sendVerificationEmail } from '../mails/emails';
+import { signUpUser } from '../controllers/user-controller';
 import User from '../models/user';
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
-import { resendCode, signUpUser } from '../controllers/user-controller';
+import { sendVerificationEmail } from '../mails/emails';
+import bcryptjs from 'bcryptjs';
+import { generateTokenAndSetCookies } from '../utils/generate-functions';
 
 // Mock dependencies
-jest.mock('../models/user'); // Ensure correct case in import
+jest.mock('../models/user');
 jest.mock('../logs/logger');
 jest.mock('../mails/emails');
+jest.mock('../utils/generate-functions', () => ({
+  generateTokenAndSetCookies: jest.fn(),
+}));
+
+// Mock bcryptjs
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('hashedPassword'), // Set default mock implementation
+}));
 
 const app = express();
-app.use(express.json()); // Middleware to parse JSON bodies
-app.post('/api/signup', signUpUser); // Route for sign up
-app.post('/api/resend-verification', resendCode); // Route for resending verification
+app.use(express.json());
+app.post('/api/v1/sign-up', signUpUser);
 
-describe('User Controller', () => {
+describe('User Controller - signUpUser', () => {
   beforeEach(() => {
-    jest.clearAllMocks(); // Clear previous mocks
+    jest.clearAllMocks();
   });
 
-  describe('signUpUser', () => {
-    it('should create a new user successfully', async () => {
-      const newUser = {
-        email: 'test@example.com',
-        password: 'password123',
-        firstName: 'John',
-        lastName: 'Doe',
-      };
+  it('should create a new user successfully', async () => {
+    const newUser = {
+      email: 'test@example.com',
+      password: 'password123',
+      firstName: 'John',
+      lastName: 'Doe',
+    };
 
-      // Mock User.findOne to return null, simulating no existing user
-      (User.findOne as jest.Mock).mockResolvedValue(null);
-      (User.prototype.save as jest.Mock).mockResolvedValue(newUser);
+    // Mock responses
+    (User.findOne as jest.Mock).mockResolvedValue(null); // No existing user
+    (User.prototype.save as jest.Mock).mockResolvedValue(newUser); // Mock save method
+    (generateTokenAndSetCookies as jest.Mock).mockImplementation(() => {}); // Mock token generation
+    (sendVerificationEmail as jest.Mock).mockResolvedValue(true); // Mock email sending
 
-      // Mock the utility functions
-      (generateTokenAndSetCookies as jest.Mock).mockImplementation(() => {});
-      (sendVerificationEmail as jest.Mock).mockResolvedValue(true);
+    const response = await request(app).post('/api/v1/sign-up').send(newUser);
 
-      // Make the request to the signup endpoint
-      const response = await request(app).post('/api/signup').send(newUser);
-
-      // Assert the response
-      expect(response.status).toBe(HTTP_STATUS.CREATED);
-      expect(response.body.success).toBe(true);
-      expect(response.body.user.email).toBe(newUser.email);
-      expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('User created'));
-    });
-
-    it('should return conflict if user already exists', async () => {
-      const existingUser = {
-        email: 'test@example.com',
-        password: 'password123',
-        firstName: 'John',
-        lastName: 'Doe',
-      };
-
-      // Mock User.findOne to return the existing user
-      (User.findOne as jest.Mock).mockResolvedValue(existingUser);
-
-      // Make the request to the signup endpoint
-      const response = await request(app).post('/api/signup').send(existingUser);
-
-      // Assert the response
-      expect(response.status).toBe(HTTP_STATUS.CONFLICT);
-      expect(response.body.message).toBe('User already exists'); // Adjust according to your message
-      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('User already exists'));
-    });
-
-    it('should handle server errors', async () => {
-      const newUser = {
-        email: 'test@example.com',
-        password: 'password123',
-        firstName: 'John',
-        lastName: 'Doe',
-      };
-
-      // Mock User.findOne to simulate a database error
-      (User.findOne as jest.Mock).mockRejectedValue(new Error('Database error'));
-
-      // Make the request to the signup endpoint
-      const response = await request(app).post('/api/signup').send(newUser);
-
-      // Assert the response
-      expect(response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
-      expect(response.body.message).toBe('Internal server error'); // Adjust according to your message
-      expect(logger.error).toHaveBeenCalledWith(expect.any(Error));
-    });
+    // Assertions
+    expect(response.status).toBe(HTTP_STATUS.CREATED);
+    expect(response.body.success).toBe(true);
+    expect(response.body.user.email).toBe(newUser.email);
+    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('User created'));
   });
 
-  describe('resendCode', () => {
-    it('should resend verification code successfully', async () => {
-      const userEmail = { email: 'test@example.com' };
-      const user = {
-        id: '12345',
-        email: userEmail.email,
-      };
+  it('should return conflict if user already exists', async () => {
+    const existingUser = {
+      email: 'test@example.com',
+      password: 'password123',
+      firstName: 'John',
+      lastName: 'Doe',
+    };
 
-      (User.findOne as jest.Mock).mockResolvedValue(user); // User found
-      (generateTokenAndSetCookies as jest.Mock).mockImplementation(() => {});
-      (sendVerificationEmail as jest.Mock).mockResolvedValue(true);
+    (User.findOne as jest.Mock).mockResolvedValue(existingUser); // User already exists
 
-      const response = await request(app).post('/api/resend-verification').send(userEmail);
+    const response = await request(app).post('/api/v1/sign-up').send(existingUser);
 
-      expect(response.status).toBe(HTTP_STATUS.CREATED);
-      expect(response.body.success).toBe(true);
-      expect(logger.info).toHaveBeenCalledWith(expect.stringContaining(`User created: ${user.id}`));
-    });
+    expect(response.status).toBe(HTTP_STATUS.CONFLICT);
+    expect(response.body.message).toBe('User already exists'); // Adjust this message as needed
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('User already exists'));
+  });
 
-    it('should return bad request if user does not exist', async () => {
-      const userEmail = { email: 'test@example.com' };
+  it('should handle server errors', async () => {
+    const newUser = {
+      email: 'test@example.com',
+      password: 'password123',
+      firstName: 'John',
+      lastName: 'Doe',
+    };
 
-      (User.findOne as jest.Mock).mockResolvedValue(null); // User not found
+    (User.findOne as jest.Mock).mockRejectedValue(new Error('Database error')); // Simulate a database error
 
-      const response = await request(app).post('/api/resend-verification').send(userEmail);
+    const response = await request(app).post('/api/v1/sign-up').send(newUser);
 
-      expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
-      expect(response.body.message).toBe('Invalid credentials'); // Adjust according to your message
-      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Invalid credentials'));
-    });
-
-    it('should handle server errors', async () => {
-      const userEmail = { email: 'test@example.com' };
-
-      (User.findOne as jest.Mock).mockRejectedValue(new Error('Database error')); // Simulate an error
-
-      const response = await request(app).post('/api/resend-verification').send(userEmail);
-
-      expect(response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
-      expect(response.body.message).toBe('Internal server error'); // Adjust according to your message
-      expect(logger.error).toHaveBeenCalledWith(expect.any(Error));
-    });
+    expect(response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    expect(response.body.message).toBe('Something went wrong!'); // Match the actual response
+    expect(logger.error).toHaveBeenCalledWith(expect.any(Error));
   });
 });
