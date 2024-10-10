@@ -57,6 +57,7 @@ export const signUpUserSchema = Joi.object({
       'any.required': emailRequiredMsg,
     }),
 });
+
 export const resendCodeSchema = Joi.object({
   email: Joi.string()
     .email()

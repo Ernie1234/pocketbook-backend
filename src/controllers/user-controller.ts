@@ -25,10 +25,10 @@ import { IUser } from '../utils/types';
 
 //  CREATE/SIGN-UP OR REGISTER A USER
 export const signUpUser = async (req: Request, res: Response) => {
-  const { email, password, firstName, lastName } = req.body;
-  const name = `${firstName} ${lastName}`;
-
   try {
+    const { email, password, firstName, lastName } = req.body;
+    const name = `${firstName} ${lastName}`;
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       logger.error(userAlreadyExist);

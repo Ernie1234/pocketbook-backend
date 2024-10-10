@@ -6,7 +6,6 @@ import User from '../models/user';
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import { sendVerificationEmail } from '../mails/emails';
-import bcryptjs from 'bcryptjs';
 import { generateTokenAndSetCookies } from '../utils/generate-functions';
 
 // Mock dependencies
@@ -35,6 +34,7 @@ describe('User Controller - signUpUser', () => {
     const newUser = {
       email: 'test@example.com',
       password: 'password123',
+      confirmPassword: 'password123',
       firstName: 'John',
       lastName: 'Doe',
     };
