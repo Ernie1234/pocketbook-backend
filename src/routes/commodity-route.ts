@@ -2,6 +2,7 @@ import express from 'express';
 
 import {
   createCommodity,
+  deleteCommodityBySlug,
   getAllCommodities,
   getCommodityByName,
   getCommodityBySlug,
@@ -22,5 +23,6 @@ router.get('/commodities', authMiddleware, getAllCommodities);
 router.get('/commodities/:slug', authMiddleware, validateCommoditySlug, getCommodityBySlug);
 router.get('/commodities/:commodityName', authMiddleware, validateCommodityName, getCommodityByName);
 router.put('/commodities', authMiddleware, validateCommodityUpdate, updateCommodity);
+router.delete('/commodities/:slug', authMiddleware, validateCommoditySlug, deleteCommodityBySlug);
 
 export default router;

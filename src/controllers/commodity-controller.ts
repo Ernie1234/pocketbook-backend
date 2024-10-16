@@ -196,3 +196,44 @@ export const updateCommodity = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+
+// DELETE COMMODITY DETAILS
+export const deleteCommodityBySlug = async (req: Request, res: Response) => {
+  const { slug } = req.params;
+
+  try {
+    const user = await User.findById(req.userId).select('-password');
+
+    if (!user) {
+      logger.error(noUserMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: noUserMsg });
+    }
+
+    const commodity = await Commodity.findOne({ slug }).populate('prices');
+
+    if (!commodity) {
+      logger.error(noCommodityMsg);
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ message: noCommodityMsg });
+    }
+
+    // Check user role for authorization
+    if (user.role !== 'ADMIN') {
+      logger.error('Unauthorized user');
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: unauthorizedMsg });
+    }
+    // Delete the commodity
+    await Commodity.deleteOne({ slug });
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Commodity deleted successfully', // Change message to indicate deletion
+      data: {
+        ...commodity.toObject(), // Include the deleted commodity details
+        prices: commodity.prices, // Include prices if necessary
+      },
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+  }
+};
