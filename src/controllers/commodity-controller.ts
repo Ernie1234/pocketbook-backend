@@ -34,19 +34,29 @@ export const createCommodity = async (req: Request, res: Response) => {
       return res.status(HTTP_STATUS.CONFLICT).json({ message: commodityExistMsg });
     }
 
+    // Check if a commodity with the same color already exists
+    const existingColorCommodity = await Commodity.findOne({ color });
+    if (existingColorCommodity) {
+      logger.error('Color already exists');
+      return res.status(HTTP_STATUS.CONFLICT).json({ message: 'Color already exists' });
+    }
+
+    const comPrice = Number(price);
+    const comQuantity = Number(quantity);
+
     // Create both the commodity and the price at the same time
     const newCommodity = await Commodity.create({
       commodityName,
       description,
       unit,
-      quantity,
+      quantity: comQuantity,
       color,
       userId: user._id,
       prices: [], // Initialize with an empty array
     });
 
     const newPrice = await Price.create({
-      price, // Ensure this is being passed correctly
+      price: comPrice, // Ensure this is being passed correctly
       commodityId: newCommodity._id,
     });
 
