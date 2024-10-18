@@ -16,7 +16,7 @@ export const TransactionType = {
   BOUGHT: 'BOUGHT',
   SOLD: 'SOLD',
   SWAP: 'SWAP',
-  SEND: 'SEND',
+  SENT: 'SENT',
   RECEIVED: 'RECEIVED',
 };
 export const TransactionStatusType = {

@@ -175,10 +175,12 @@ export const updateCommodity = async (req: Request, res: Response) => {
     }
 
     // Update quantity if provided
-    if (quantity !== undefined && commodity.quantity === 0) {
-      commodity.quantity = quantity;
-    } else if (quantity !== undefined && commodity.quantity) {
-      commodity.quantity += quantity;
+    if (quantity !== undefined) {
+      if (commodity.quantity === 0 || quantity === commodity.quantity) {
+        commodity.quantity = quantity;
+      } else if (commodity.quantity !== quantity) {
+        commodity.quantity += quantity;
+      }
     }
 
     // Create a new price document if price is provided
