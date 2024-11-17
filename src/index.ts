@@ -18,7 +18,7 @@ const allowedOrigins = [
   process.env.REACT_WEB_APP_BASE_URL as string, // React web app
   process.env.REACT_WEB_APP_PROD_BASE_URL as string, // Production React web app
   process.env.REACT_NATIVE_APP_BASE_URL as string, // Replace with your React Native server endpoint
-  process.env.REACT_NATIVE_APP_PROD_BASE_URL as string, // If using Expo
+  process.env.EXPO_BASE_URL!, // If using Expo
 ];
 
 app.use(
