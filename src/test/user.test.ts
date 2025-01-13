@@ -8,7 +8,6 @@ import {
   userAlreadyExist,
   successMsg,
 } from '../constants/messages';
-import logger from '../logs/logger';
 
 const url = '/api/v1';
 
@@ -149,7 +148,7 @@ describe('User Authentication', () => {
       expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
       expect(response.body).toMatchObject({
         success: false,
-        message: invalidTokenMsg
+        message: invalidTokenMsg,
       });
     });
   });
@@ -191,7 +190,7 @@ describe('User Authentication', () => {
       expect(response.status).toBe(HTTP_STATUS.OK);
       expect(response.body).toEqual({
         success: true,
-        message: "Logout successful",
+        message: 'Logout successful',
       });
     });
   });
@@ -273,7 +272,7 @@ describe('User Authentication', () => {
       const User = (await import('../models/user')).default;
       await User.findOneAndUpdate(
         { email: testUser.email },
-        { resetPasswordExpires: new Date(Date.now() - 3600000) }
+        { resetPasswordExpires: new Date(Date.now() - 3_600_000) },
       );
 
       const response = await factory.app.post(`${url}/users/reset-password/${resetToken}`).send({
