@@ -8,13 +8,25 @@ export const generateVerificationToken = (): string => {
 
 export const generateTokenAndSetCookies = (res: Response, userId: string) => {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
-  res.cookie('token', token, {
+  
+  // console.log('Setting cookie with token:', {
+  //   token,
+  //   env: process.env.NODE_ENV,
+  //   secret: process.env.JWT_SECRET?.substring(0, 3) + '...'
+  // });
+  
+  const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax', // lax,none, strict
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    // path: '/',
-  });
+    secure: false, // Disable for tests
+    sameSite: 'lax' as const,
+    signed: process.env.NODE_ENV !== 'test', // Don't sign cookies in test environment
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: '/',
+    domain: undefined // Allow any domain for testing
+  };
+
+  res.cookie('token', token, cookieOptions);
+  // console.log('Cookie set with options:', cookieOptions);
 
   return token;
 };

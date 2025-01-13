@@ -12,18 +12,23 @@ export const createCommoditySchema = Joi.object({
     'string.base': 'Description must be a string',
     'string.max': 'Description must be less than 500 characters long',
   }),
-  color: Joi.string().length(7).required().trim().messages({
-    'string.base': 'Color must be a string',
-    'string.length': 'Color must be exactly 7 characters long',
-    'any.required': 'Color is required',
-  }),
+  color: Joi.string()
+    .pattern(/^#[0-9A-Fa-f]{6}$/)
+    .required()
+    .trim()
+    .messages({
+      'string.base': 'Color must be a string',
+      'string.pattern.base': 'Color must be a valid hex color (e.g. #FF5733)',
+      'any.required': 'Color is required',
+    }),
   price: Joi.number().greater(0).required().messages({
     'number.base': 'Price must be a number',
     'number.greater': 'Price must be greater than 0',
     'any.required': 'Price is required',
   }),
-  quantity: Joi.number().required().messages({
+  quantity: Joi.number().min(0).required().messages({
     'number.base': 'Quantity must be a number',
+    'number.min': 'Quantity must be greater than or equal to 0',
     'any.required': 'Quantity is required',
   }),
   unit: Joi.string().min(1).max(20).required().messages({
@@ -78,8 +83,9 @@ export const updateCommodityValidationSchema = Joi.object({
     'number.base': 'Price must be a number',
     'number.greater': 'Price must be greater than 0',
   }),
-  quantity: Joi.number().optional().messages({
+  quantity: Joi.number().min(0).optional().messages({
     'number.base': 'Quantity must be a number',
+    'number.min': 'Quantity must be greater than or equal to 0',
   }),
 }).custom((value, helpers) => {
   // Ensure either price or quantity is present, but not both empty

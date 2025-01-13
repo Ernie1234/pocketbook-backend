@@ -1,6 +1,7 @@
 export default {
   globalSetup: './src/test/setup/jest-setup.ts',
   globalTeardown: './src/test/setup/jest-teardown.ts',
+  setupFilesAfterEnv: ['./src/test/setup/jest.setup.ts'],
   coveragePathIgnorePatterns: ['.config.ts'],
   preset: 'ts-jest',
   testTimeout: process.env.CI ? 120_000 : 12_000,

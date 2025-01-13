@@ -186,10 +186,11 @@ export const signInUser = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate token and set cookies (assuming a function exists for this)
-    generateTokenAndSetCookies(res, user.id);
+    // Generate token and set cookies
+    const token = generateTokenAndSetCookies(res, user.id);
+    logger.info('Generated token and set cookies:', token);
+    
     user.lastLogin = new Date();
-
     await user.save();
 
     const userObject = user.toObject();

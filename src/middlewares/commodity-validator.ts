@@ -39,14 +39,14 @@ const validateFn = <T extends ParamsDictionary>(
 };
 
 export const validateCreateCommodity = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(createCommoditySchema, req.body, req, res, next);
+  return validateFn(createCommoditySchema, req.body, req, res, next);
 };
 export const validateCommoditySlug = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(slugValidationSchema, req.params, req, res, next);
+  return validateFn(slugValidationSchema, req.params, req, res, next);
 };
 export const validateCommodityName = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(commodityNameValidationSchema, req.params, req, res, next);
+  return validateFn(commodityNameValidationSchema, req.params, req, res, next);
 };
 export const validateCommodityUpdate = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(updateCommodityValidationSchema, req.body, req, res, next);
+  return validateFn(updateCommodityValidationSchema, req.body, req, res, next);
 };

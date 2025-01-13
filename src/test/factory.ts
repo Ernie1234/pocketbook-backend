@@ -2,6 +2,7 @@ import express from 'express';
 import supertest from 'supertest';
 import mongoose, { Connection } from 'mongoose';
 import { Server, createServer } from 'node:http';
+import cookieParser from 'cookie-parser';
 
 import { testDatabaseConfig } from './setup/jest-setup';
 import logger from '../logs/logger';
@@ -36,19 +37,60 @@ class TestFactory {
 
   private async startup() {
     try {
-      const connection = await mongoose.connect(MONGO_URL);
-      this._connection = connection.connection;
+      // Set test environment variables first
+      process.env.NODE_ENV = 'test';
+      process.env.JWT_SECRET = 'test-secret';
+      process.env.EMAIL_USER = 'test@example.com';
+      process.env.EMAIL_PASS = 'test-password';
+      process.env.EMAIL_HOST = 'smtp.example.com';
+      process.env.EMAIL_PORT = '587';
+      process.env.EMAIL_FROM = 'test@example.com';
+      process.env.FRONTEND_BASE_URL = 'http://localhost:3000';
+      
+      // Connect to test database with retry logic
+      let retries = 5;
+      while (retries > 0) {
+        try {
+          const connection = await mongoose.connect(MONGO_URL);
+          this._connection = connection.connection;
+          break;
+        } catch (error) {
+          retries--;
+          if (retries === 0) throw error;
+          logger.info(`Failed to connect to MongoDB, retrying... (${retries} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      // Create Express app
       this._app = express();
+      
+      // Configure middleware
       this._app.use(express.json());
       this._app.use(express.urlencoded({ extended: true }));
+      this._app.use(cookieParser(process.env.JWT_SECRET)); // Use JWT_SECRET for cookie signing, but cookies won't be signed in test env
+      
+      // Configure response headers
+      this._app.use((req, res, next) => {
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        next();
+      });
+      
+      // Configure routes
       this._app.use('/api/v1', userRoute);
       this._app.use('/api/v1', commodityRoute);
       this._app.use('/api/v1', portfolioRoute);
       this._app.use('/api/v1', transactionRoute);
+      
+      // Start server
       this._server = createServer(this._app).listen(3010);
+      
+      logger.info('Test server started on port 3010');
     } catch (error) {
-      logger.error(error);
-      throw new Error(`Error starting up the server: ${error}`);
+      logger.error('Error in test setup:', error);
+      throw error;
     }
   }
 
