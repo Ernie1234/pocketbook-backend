@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import mongoose, { Document } from 'mongoose';
 
 import { TransactionStatusType, TransactionType } from '../utils/types';
@@ -28,7 +29,6 @@ const TransactionSchema = new mongoose.Schema<ITransaction>(
     },
     quantity: {
       type: Number,
-      default: null,
     },
     status: {
       type: String,
@@ -36,7 +36,6 @@ const TransactionSchema = new mongoose.Schema<ITransaction>(
     },
     reference: {
       type: String,
-      default: null,
     },
     unit: {
       type: String,

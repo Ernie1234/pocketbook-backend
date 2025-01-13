@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable arrow-body-style */
 import Joi, { Schema } from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
 
 import {
   slugValidationSchema,
@@ -18,7 +19,7 @@ const formatJoiError = (error: Joi.ValidationError) => {
   return formattedError;
 };
 
-const validateFn = <T extends ParamsDictionary>(
+const validateFn = <T extends Record<string, any>>(
   schema: Schema<T>,
   data: any,
   req: Request,

@@ -12,7 +12,7 @@ import {
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import User from '../models/user';
-import { Price } from '../models/price';
+import Price from '../models/price';
 import Commodity from '../models/commodity';
 import { Notification } from '../models/notification';
 

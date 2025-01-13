@@ -17,6 +17,7 @@ import { TransactionStatusType, TransactionType } from '../utils/types';
 import Commodity from '../models/commodity';
 
 //  CREATE A transaction
+
 export const createTransaction = async (req: Request, res: Response) => {
   const { price, commodityName, unit, quantity } = req.body;
   try {
@@ -38,6 +39,7 @@ export const createTransaction = async (req: Request, res: Response) => {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: noCommodityMsg });
     }
 
+    // eslint-disable-next-line max-len
     if (commodity.quantity === undefined || commodity.quantity < quantity || commodity.quantity <= 0) {
       logger.error(InsufficientCommodityMsg);
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: InsufficientCommodityMsg });
@@ -59,7 +61,11 @@ export const createTransaction = async (req: Request, res: Response) => {
     // Find existing portfolio entry
     const portfolio = await Portfolio.findOne({ userId, commodityName });
 
-    if (!portfolio) {
+    if (portfolio) {
+      portfolio.totalQuantity += quantity;
+      portfolio.balance += trans.price;
+      await portfolio.save();
+    } else {
       // Create a new portfolio entry
       const newPortfolio = new Portfolio({
         userId,
@@ -69,10 +75,6 @@ export const createTransaction = async (req: Request, res: Response) => {
         commodityId: commodity.id,
       });
       await newPortfolio.save();
-    } else {
-      portfolio.totalQuantity += quantity;
-      portfolio.balance += trans.price;
-      await portfolio.save();
     }
 
     // Subtract the quantity from the commodity's quantity
@@ -88,7 +90,7 @@ export const createTransaction = async (req: Request, res: Response) => {
     const title = 'Bought Commodity';
     const body = `You have added ${commodityName} commodity to your portfolio`;
 
-    await Notification.create({ userId, title, body }); // Ensure this is the correct way to create a notification
+    await Notification.create({ userId, title, body });
 
     return res.status(HTTP_STATUS.OK).json({
       success: true,

@@ -39,4 +39,6 @@ PriceSchema.pre('save', function (next) {
   next();
 });
 
-export const Price = mongoose.model('Price', PriceSchema);
+const Price = mongoose.model('Price', PriceSchema);
+
+export default Price;

@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import mongoose, { Document } from 'mongoose';
 
 // Define the Portfolio interface
@@ -7,6 +8,8 @@ export interface IPortfolio extends Document {
   totalQuantity: number;
   userId: mongoose.Types.ObjectId;
   commodityId: mongoose.Types.ObjectId; // Include the commodity reference
+  updatedAt?: Date; // Add this line
+  createdAt?: Date; // Add this line to match the schema
 }
 
 // Define the Portfolio schema
@@ -30,6 +33,14 @@ const PortfolioSchema = new mongoose.Schema<IPortfolio>(
       type: Number,
       default: 0, // Default total quantity is 0
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User', // Reference to the User model
@@ -37,17 +48,21 @@ const PortfolioSchema = new mongoose.Schema<IPortfolio>(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
     toJSON: {
       transform: (doc, ret) => {
-        ret.id = ret._id; // Create a virtual id field
-        delete ret._id; // Remove the original _id field
-        delete ret.__v; // Remove the version key
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
         return ret;
       },
     },
   },
 );
+
+PortfolioSchema.pre('save', function (next) {
+  this.updatedAt = new Date();
+  next();
+});
 
 // Create and export the Portfolio model
 export const Portfolio = mongoose.model<IPortfolio>('Portfolio', PortfolioSchema);

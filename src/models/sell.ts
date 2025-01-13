@@ -26,7 +26,7 @@ const SellSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      default: null,
+      default: undefined,
     },
     createdAt: {
       type: Date,
@@ -55,4 +55,6 @@ SellSchema.pre('save', function (next) {
   next();
 });
 
-export const Sell = mongoose.model('Sell', SellSchema);
+const Sell = mongoose.model('Sell', SellSchema);
+
+export default Sell;

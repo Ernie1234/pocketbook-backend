@@ -1,12 +1,14 @@
 import { MailtrapClient } from 'mailtrap';
 import dotenv from 'dotenv';
 
+import logger from '../logs/logger';
+
 dotenv.config();
 
 const TOKEN = process.env.MAILTRAP_TOKEN as string;
 
 if (!TOKEN) {
-  console.error('Mailtrap token is missing in environment variables');
+  logger.error('Mailtrap token is missing in environment variables');
   // process.exit(1); // Exit the process with a failure code
 }
 

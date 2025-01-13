@@ -7,7 +7,7 @@ import User from '../models/user';
 import { Portfolio } from '../models/portfolio';
 
 //  GET ALL PORTFOLIO
-export const getPortfolio = async (req: Request, res: Response) => {
+const getPortfolio = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(req.userId).select('-password');
 
@@ -29,3 +29,5 @@ export const getPortfolio = async (req: Request, res: Response) => {
     return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
   }
 };
+
+export default getPortfolio;

@@ -24,7 +24,7 @@ export const sendVerificationEmail = async (email: string, verificationToken: st
       subject: 'Verify your email',
       html: verificationEmailTemplate
         .replace('{verificationCode}', verificationToken)
-        .replace(`{baseUrl}`, `${baseUrl}/auth/email-verification?code=${verificationToken}`),
+        .replace(`${baseUrl}`, `${baseUrl}/auth/email-verification?code=${verificationToken}`),
       category: 'Email Verification',
     });
 

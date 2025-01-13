@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import mongoose from 'mongoose';
 
 export interface INotification extends mongoose.Document {
@@ -11,7 +12,6 @@ const NotificationSchema = new mongoose.Schema<INotification>(
   {
     title: {
       type: String,
-      default: null,
     },
     body: {
       type: String,

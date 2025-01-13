@@ -32,9 +32,9 @@ export const signUpUser = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       logger.error(userAlreadyExist);
-      return res.status(HTTP_STATUS.CONFLICT).json({ 
+      return res.status(HTTP_STATUS.CONFLICT).json({
         success: false,
-        message: userAlreadyExist 
+        message: userAlreadyExist,
       });
     }
 
@@ -85,9 +85,9 @@ export const resendCode = async (req: Request, res: Response) => {
     });
     if (!user) {
       logger.error(invalidCredentialsMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: invalidCredentialsMsg 
+        message: invalidCredentialsMsg,
       });
     }
 
@@ -179,9 +179,9 @@ export const signInUser = async (req: Request, res: Response) => {
     });
     if (!user) {
       logger.error(invalidCredentialsMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
-        message: invalidCredentialsMsg 
+        message: invalidCredentialsMsg,
       });
     }
 
@@ -207,7 +207,7 @@ export const signInUser = async (req: Request, res: Response) => {
     // Generate token and set cookies
     const token = generateTokenAndSetCookies(res, user.id);
     logger.info('Generated token and set cookies:', token);
-    
+
     user.lastLogin = new Date();
     await user.save();
 
