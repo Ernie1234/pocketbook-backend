@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('ts-jest').JestConfigWithTsJest} */
+export default {
   globalSetup: './src/test/setup/jest-setup.ts',
   globalTeardown: './src/test/setup/jest-teardown.ts',
   setupFilesAfterEnv: ['./src/test/setup/jest.setup.ts'],
