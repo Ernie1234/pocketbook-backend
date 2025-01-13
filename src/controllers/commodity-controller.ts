@@ -67,8 +67,8 @@ export const createCommodity = async (req: Request, res: Response) => {
     // Notify all users about the new commodity
     const users = await User.find();
 
-    const notifications = users.map((user) => ({
-      userId: user._id,
+    const notifications = users.map((userDetail) => ({
+      userId: userDetail._id,
       title: 'New Commodity',
       body: `A new commodity "${commodityName}" has been added`,
       createdAt: new Date(),
