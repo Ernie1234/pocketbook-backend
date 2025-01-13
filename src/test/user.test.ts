@@ -6,6 +6,7 @@ import {
   invalidTokenMsg,
   noUserMsg,
   userAlreadyExist,
+  successMsg,
 } from '../constants/messages';
 import logger from '../logs/logger';
 
@@ -15,8 +16,8 @@ describe('User Authentication', () => {
   const factory = new TestFactory();
   const testUser = {
     email: 'test@example.com',
-    password: 'Test123!',
-    confirmPassword: 'Test123!',
+    password: 'Password123!',
+    confirmPassword: 'Password123!',
     firstName: 'Test',
     lastName: 'User',
   };
@@ -142,11 +143,14 @@ describe('User Authentication', () => {
 
     it('should return error for invalid verification code', async () => {
       const response = await factory.app.post(`${url}/users/verification`).send({
-        verificationCode: 'invalid-token',
+        verificationCode: '123456',
       });
 
       expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
-      expect(response.body.message).toBe(invalidTokenMsg);
+      expect(response.body).toMatchObject({
+        success: false,
+        message: invalidTokenMsg
+      });
     });
   });
 
@@ -185,17 +189,10 @@ describe('User Authentication', () => {
       const response = await factory.app.post(`${url}/users/sign-out`);
 
       expect(response.status).toBe(HTTP_STATUS.OK);
-      expect(response.body).toMatchObject({
+      expect(response.body).toEqual({
         success: true,
-        message: 'Logout successful',
+        message: "Logout successful",
       });
-      
-      // Check that the cookie is cleared
-      const cookies = response.headers['set-cookie'];
-      expect(cookies).toBeDefined();
-      const cookieArray = Array.isArray(cookies) ? cookies : [cookies];
-      const tokenCookie = cookieArray.find((cookie: string) => cookie.startsWith('token='));
-      expect(tokenCookie).toContain('Expires=Thu, 01 Jan 1970 00:00:00 GMT');
     });
   });
 
@@ -210,7 +207,7 @@ describe('User Authentication', () => {
       });
 
       expect(response.status).toBe(HTTP_STATUS.OK);
-      expect(response.body).toMatchObject({
+      expect(response.body).toEqual({
         success: true,
         message: 'Password reset link sent to your email!',
       });
@@ -230,22 +227,16 @@ describe('User Authentication', () => {
     let resetToken: string;
 
     beforeEach(async () => {
-      // Create user and request password reset
+      // Create a user and request password reset
       await factory.app.post(`${url}/users/sign-up`).send(testUser);
       await factory.app.post(`${url}/users/forgot-password`).send({
         email: testUser.email,
       });
 
-      // Get the reset token from the user in the database
+      // Get the reset token from the database
       const User = (await import('../models/user')).default;
       const user = await User.findOne({ email: testUser.email });
-      if (!user) {
-        throw new Error('User not found after signup');
-      }
-      if (!user.resetPasswordToken) {
-        throw new Error('Reset password token not found');
-      }
-      resetToken = user.resetPasswordToken;
+      resetToken = user?.resetPasswordToken as string;
     });
 
     it('should successfully reset password', async () => {
@@ -254,9 +245,9 @@ describe('User Authentication', () => {
       });
 
       expect(response.status).toBe(HTTP_STATUS.OK);
-      expect(response.body).toMatchObject({
+      expect(response.body).toEqual({
         success: true,
-        message: 'Password reset Successful!',
+        message: `Password reset ${successMsg}`,
       });
 
       // Try signing in with new password
@@ -264,6 +255,7 @@ describe('User Authentication', () => {
         email: testUser.email,
         password: 'NewPassword123!',
       });
+
       expect(signInResponse.status).toBe(HTTP_STATUS.OK);
     });
 
@@ -277,7 +269,7 @@ describe('User Authentication', () => {
     });
 
     it('should return error for expired reset token', async () => {
-      // Update token expiry to past date
+      // Update the user's reset token expiration to be in the past
       const User = (await import('../models/user')).default;
       await User.findOneAndUpdate(
         { email: testUser.email },

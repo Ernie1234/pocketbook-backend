@@ -14,7 +14,7 @@ describe('POST /commodities', () => {
     
     // Create a test user
     const signUpResponse = await factory.app
-      .post('/api/v1/sign-up')
+      .post('/api/v1/users/sign-up')
       .send({
         email: 'test@example.com',
         password: 'Test123!',
@@ -23,12 +23,12 @@ describe('POST /commodities', () => {
         lastName: 'User'
       });
 
-    // console.log('Sign-up Response:', {
-    //   status: signUpResponse.status,
-    //   body: signUpResponse.body,
-    //   headers: signUpResponse.headers,
-    //   error: signUpResponse.error
-    // });
+    console.log('Sign-up Response:', {
+      status: signUpResponse.status,
+      body: signUpResponse.body,
+      headers: signUpResponse.headers,
+      error: signUpResponse.error
+    });
 
     // If sign-up failed, throw error with details
     if (signUpResponse.status !== 201) {
@@ -37,7 +37,7 @@ describe('POST /commodities', () => {
 
     // Sign in to get the auth token
     const signInResponse = await factory.app
-      .post('/api/v1/sign-in')
+      .post('/api/v1/users/sign-in')
       .send({
         email: 'test@example.com',
         password: 'Test123!'

@@ -20,6 +20,13 @@ class TestFactory {
 
   private _server!: Server;
 
+  private _port: number;
+
+  constructor() {
+    // Generate a random port between 3000 and 4000
+    this._port = Math.floor(Math.random() * 1000) + 3000;
+  }
+
   public get app(): supertest.SuperTest<supertest.Test> {
     return supertest(this._app) as unknown as supertest.SuperTest<supertest.Test>;
   }
@@ -85,9 +92,9 @@ class TestFactory {
       this._app.use('/api/v1', transactionRoute);
       
       // Start server
-      this._server = createServer(this._app).listen(3010);
+      this._server = createServer(this._app).listen(this._port);
       
-      logger.info('Test server started on port 3010');
+      logger.info(`Test server started on port ${this._port}`);
     } catch (error) {
       logger.error('Error in test setup:', error);
       throw error;
