@@ -76,7 +76,7 @@ export const createCommodity = async (req: Request, res: Response) => {
 
     await Notification.insertMany(notifications);
 
-    return res.status(HTTP_STATUS.OK).json({
+    return res.status(HTTP_STATUS.CREATED).json({
       success: true,
       message: 'Commodity added successfully!',
       data: newCommodity,
