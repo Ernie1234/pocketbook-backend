@@ -32,7 +32,10 @@ export const signUpUser = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       logger.error(userAlreadyExist);
-      return res.status(HTTP_STATUS.CONFLICT).send({ message: userAlreadyExist });
+      return res.status(HTTP_STATUS.CONFLICT).json({ 
+        success: false,
+        message: userAlreadyExist 
+      });
     }
 
     const hashedPassword = await bcryptjs.hash(password, 10);
@@ -43,7 +46,7 @@ export const signUpUser = async (req: Request, res: Response) => {
       name,
       verificationToken,
       password: hashedPassword,
-      verificationTokenExpiresAt: Date.now() + 5 * 60 * 1000,
+      verificationTokenExpiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
     await user.save();
@@ -59,12 +62,16 @@ export const signUpUser = async (req: Request, res: Response) => {
       message: createdMsg,
       user: {
         ...userObject,
-        password: undefined, // Do not send password back in the response
+        password: undefined,
+        verificationToken,
       },
     });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: serverErrorMsg,
+    });
   }
 };
 
@@ -78,29 +85,37 @@ export const resendCode = async (req: Request, res: Response) => {
     });
     if (!user) {
       logger.error(invalidCredentialsMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: invalidCredentialsMsg });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+        success: false,
+        message: invalidCredentialsMsg 
+      });
     }
 
     const verificationToken = generateVerificationToken();
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    await user.save();
 
-    generateTokenAndSetCookies(res, user?.id);
-    await sendVerificationEmail(user?.email as string, verificationToken);
+    await sendVerificationEmail(user.email as string, verificationToken);
 
-    logger.info(`User created: ${user.id}`);
+    logger.info(`Verification code resent to user: ${user.id}`);
 
     const userObject = user.toObject();
 
-    return res.status(HTTP_STATUS.CREATED).json({
+    return res.status(HTTP_STATUS.OK).json({
       success: true,
-      message: createdMsg,
+      message: 'Verification code sent successfully',
       user: {
         ...userObject,
-        password: undefined, // Do not send password back in the response
+        password: undefined,
       },
     });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: serverErrorMsg,
+    });
   }
 };
 
@@ -112,14 +127,14 @@ export const verifyEmail = async (req: Request, res: Response): Promise<Response
     // Find user with the provided verification code and check if the token is not expired
     const userCode: IUser | null = await User.findOne({
       verificationToken: verificationCode,
-      verificationTokenExpiresAt: { $gt: Date.now() },
+      verificationTokenExpiresAt: { $gt: new Date() },
     });
 
     logger.info(userCode);
 
     if (!userCode) {
       logger.error(invalidTokenMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).send({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         message: invalidTokenMsg,
       });
@@ -164,7 +179,10 @@ export const signInUser = async (req: Request, res: Response) => {
     });
     if (!user) {
       logger.error(invalidCredentialsMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: invalidCredentialsMsg });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+        success: false,
+        message: invalidCredentialsMsg 
+      });
     }
 
     // Ensure user.password is a string before comparing
@@ -205,7 +223,10 @@ export const signInUser = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: serverErrorMsg,
+    });
   }
 };
 
@@ -213,10 +234,16 @@ export const signInUser = async (req: Request, res: Response) => {
 export const logOutUser = async (req: Request, res: Response) => {
   try {
     res.clearCookie('token'); // Clear the token cookie
-    return res.status(HTTP_STATUS.OK).send({ success: true, message: 'Logout successful' });
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Logout successful',
+    });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: serverErrorMsg,
+    });
   }
 };
 //  FORGET PASSWORD
@@ -226,8 +253,11 @@ export const forgetPassword = async (req: Request, res: Response) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      logger.error(invalidCredentialsMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: noUserMsg });
+      logger.error(noUserMsg);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: noUserMsg,
+      });
     }
 
     // Generate reset token
@@ -242,10 +272,16 @@ export const forgetPassword = async (req: Request, res: Response) => {
     const resetURL = `${process.env.FRONTEND_BASE_URL}/reset-password/${resetToken}`;
     await sendPasswordResetEmail(email, resetURL); // Implement this function to send the email
 
-    return res.status(HTTP_STATUS.OK).send({ success: true, message: 'Password reset link sent to your email!' });
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Password reset link sent to your email!',
+    });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: serverErrorMsg,
+    });
   }
 };
 
@@ -256,11 +292,11 @@ export const resetPassword = async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() },
+      resetPasswordExpires: { $gt: new Date() },
     });
 
     if (!user) {
-      return res.status(HTTP_STATUS.BAD_REQUEST).send({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         message: invalidTokenMsg,
       });
@@ -275,9 +311,15 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     await sendResetSuccessEmail(user.email as string);
 
-    return res.status(HTTP_STATUS.OK).send({ success: true, message: `Password reset ${successMsg}` });
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: `Password reset ${successMsg}`,
+    });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: serverErrorMsg,
+    });
   }
 };

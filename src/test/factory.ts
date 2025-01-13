@@ -79,7 +79,7 @@ class TestFactory {
       });
       
       // Configure routes
-      this._app.use('/api/v1', userRoute);
+      this._app.use('/api/v1/users', userRoute);
       this._app.use('/api/v1', commodityRoute);
       this._app.use('/api/v1', portfolioRoute);
       this._app.use('/api/v1', transactionRoute);

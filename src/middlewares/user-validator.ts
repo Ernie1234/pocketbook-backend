@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import Joi, { Schema } from 'joi';
+import Joi, { Schema, ValidationError } from 'joi';
 
 import {
   emailVerificationSchema,
@@ -10,17 +10,17 @@ import {
   signUpUserSchema,
 } from '../validators/user-validator';
 
-const formatJoiError = (error: Joi.ValidationError) => {
-  const formattedError: { [key: string]: string } = {};
-  // eslint-disable-next-line unicorn/no-array-for-each
-  error.details.forEach((detail: Joi.ValidationErrorItem) => {
-    formattedError[detail.path.join('.')] = detail.message;
+const formatJoiError = (error: ValidationError) => {
+  const errors: Record<string, string> = {};
+  error.details.forEach((detail) => {
+    const key = detail.path[0] as string;
+    errors[key] = detail.message;
   });
-  return formattedError;
+  return errors;
 };
 
 const validateFn = <T>(schema: Schema<T>, req: Request, res: Response, next: NextFunction) => {
-  const { error, value } = schema.validate(req.body);
+  const { error, value } = schema.validate(req.body, { abortEarly: false });
   if (error) {
     return res.status(400).send(formatJoiError(error));
   }
@@ -29,31 +29,27 @@ const validateFn = <T>(schema: Schema<T>, req: Request, res: Response, next: Nex
 };
 
 export const validateUserSignUp = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(signUpUserSchema, req, res, next);
+  return validateFn(signUpUserSchema, req, res, next);
 };
+
 export const validateUserResend = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(resendCodeSchema, req, res, next);
+  return validateFn(resendCodeSchema, req, res, next);
 };
+
 export const validateVerificationCode = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(emailVerificationSchema, req, res, next);
+  return validateFn(emailVerificationSchema, req, res, next);
 };
 
 export const validateUserSignIn = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(signInUserSchema, req, res, next);
+  return validateFn(signInUserSchema, req, res, next);
 };
 
 export const validateForgetPassword = async (req: Request, res: Response, next: NextFunction) => {
-  validateFn(forgetPasswordSchema, req, res, next);
+  return validateFn(forgetPasswordSchema, req, res, next);
 };
 
 export const validateResetPassword = async (req: Request, res: Response, next: NextFunction) => {
   const { token } = req.params;
   const { password } = req.body;
-
-  const { error } = resetPasswordSchema.validate({ token, password });
-
-  if (error) {
-    return res.status(400).send(formatJoiError);
-  }
-  return next();
+  return validateFn(resetPasswordSchema, { body: { token, password } } as Request, res, next);
 };
