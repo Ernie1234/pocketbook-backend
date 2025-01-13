@@ -1,19 +1,29 @@
 import Joi from 'joi';
 
+const COMMODITY_NAME_MUST_BE_STRING = 'Commodity name must be a string';
+const COMMODITY_NAME_CANNOT_BE_EMPTY = 'Commodity name cannot be empty';
+const COMMODITY_NAME_MIN_LENGHT = 'Commodity name must be at least 1 character long';
+const COMMODITY_NAME_REQUIRED = 'Commodity name is required';
+
 export const createCommoditySchema = Joi.object({
-  commodityName: Joi.string().min(1).max(50).required().messages({
-    'string.base': 'Commodity name must be a string',
-    'string.empty': 'Commodity name cannot be empty',
-    'string.min': 'Commodity name must be at least 1 character long',
-    'string.max': 'Commodity name must be less than or equal to 50 characters long',
-    'any.required': 'Commodity name is required',
-  }),
+  commodityName: Joi.string()
+    .min(1)
+    .max(50)
+    .required()
+
+    .messages({
+      'string.base': COMMODITY_NAME_MUST_BE_STRING,
+      'string.empty': COMMODITY_NAME_CANNOT_BE_EMPTY,
+      'string.min': COMMODITY_NAME_MIN_LENGHT,
+      'string.max': 'Commodity name must be less than or equal to 50 characters long',
+      'any.required': COMMODITY_NAME_REQUIRED,
+    }),
   description: Joi.string().max(500).messages({
     'string.base': 'Description must be a string',
     'string.max': 'Description must be less than 500 characters long',
   }),
   color: Joi.string()
-    .pattern(/^#[0-9A-Fa-f]{6}$/)
+    .pattern(/^#[\dA-Fa-f]{6}$/)
     .required()
     .trim()
     .messages({
@@ -31,19 +41,24 @@ export const createCommoditySchema = Joi.object({
     'number.min': 'Quantity must be greater than or equal to 0',
     'any.required': 'Quantity is required',
   }),
-  unit: Joi.string().min(1).max(20).required().messages({
-    'string.base': 'Unit must be a string',
-    'string.empty': 'Unit cannot be empty',
-    'string.min': 'Unit must be at least 1 character long',
-    'string.max': 'Unit must be less than or equal to 20 characters long',
-    'any.required': 'Unit is required',
-  }),
+  unit: Joi.string()
+    .min(1)
+    .max(20)
+    .required()
+
+    .messages({
+      'string.base': 'Unit must be a string',
+      'string.empty': 'Unit cannot be empty',
+      'string.min': 'Unit must be at least 1 character long',
+      'string.max': 'Unit must be less than or equal to 20 characters long',
+      'any.required': 'Unit is required',
+    }),
 });
 
 // Define the slug validation schema
 export const slugValidationSchema = Joi.object({
   slug: Joi.string()
-    .pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) // Slug pattern: lowercase letters, numbers, and dashes
+    .pattern(/^[\da-z]+(?:-[\da-z]+)*$/) // Slug pattern: lowercase letters, numbers, and dashes
     .min(1)
     .max(100) // Adjust max length as needed
     .required()
@@ -63,22 +78,27 @@ export const commodityNameValidationSchema = Joi.object({
     .max(50) // Adjust max length as needed
     .required() // Required field
     .messages({
-      'string.base': 'Commodity name must be a string',
-      'string.empty': 'Commodity name cannot be empty',
-      'string.min': 'Commodity name must be at least 1 character long',
+      'string.base': COMMODITY_NAME_MUST_BE_STRING,
+      'string.empty': COMMODITY_NAME_CANNOT_BE_EMPTY,
+      'string.min': COMMODITY_NAME_MIN_LENGHT,
       'string.max': 'Commodity name must be less than or equal to 100 characters long',
-      'any.required': 'Commodity name is required',
+      'any.required': COMMODITY_NAME_REQUIRED,
     }),
 });
 // Define the update commodity validation schema
 export const updateCommodityValidationSchema = Joi.object({
-  commodityName: Joi.string().min(1).max(50).required().messages({
-    'string.base': 'Commodity name must be a string',
-    'string.empty': 'Commodity name cannot be empty',
-    'string.min': 'Commodity name must be at least 1 character long',
-    'string.max': 'Commodity name must be less than or equal to 50 characters long',
-    'any.required': 'Commodity name is required',
-  }),
+  commodityName: Joi.string()
+    .min(1)
+    .max(50)
+    .required()
+
+    .messages({
+      'string.base': COMMODITY_NAME_MUST_BE_STRING,
+      'string.empty': COMMODITY_NAME_CANNOT_BE_EMPTY,
+      'string.min': COMMODITY_NAME_MIN_LENGHT,
+      'string.max': 'Commodity name must be less than or equal to 50 characters long',
+      'any.required': COMMODITY_NAME_REQUIRED,
+    }),
   price: Joi.number().greater(0).optional().messages({
     'number.base': 'Price must be a number',
     'number.greater': 'Price must be greater than 0',
@@ -90,7 +110,7 @@ export const updateCommodityValidationSchema = Joi.object({
 }).custom((value, helpers) => {
   // Ensure either price or quantity is present, but not both empty
   const { price, quantity } = value;
-  if (price == null && quantity == null) {
+  if (price === undefined && quantity === undefined) {
     return helpers.error('any.required', {
       message: 'At least one of price or quantity is required.',
     });

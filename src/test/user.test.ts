@@ -11,6 +11,10 @@ import {
 
 const url = '/api/v1';
 
+const errIfNoUser = 'should return error for non-existent user';
+const nonExistMail = 'nonexistent@example.com';
+const newPassword = 'NewPassword123!';
+
 describe('User Authentication', () => {
   const factory = new TestFactory();
   const testUser = {
@@ -104,9 +108,9 @@ describe('User Authentication', () => {
       expect(response.body.message).toBe(invalidCredentialsMsg);
     });
 
-    it('should return error for non-existent user', async () => {
+    it(errIfNoUser, async () => {
       const response = await factory.app.post(`${url}/users/sign-in`).send({
-        email: 'nonexistent@example.com',
+        email: nonExistMail,
         password: testUser.password,
       });
 
@@ -173,9 +177,9 @@ describe('User Authentication', () => {
       });
     });
 
-    it('should return error for non-existent user', async () => {
+    it(errIfNoUser, async () => {
       const response = await factory.app.post(`${url}/users/resend-verification`).send({
-        email: 'nonexistent@example.com',
+        email: nonExistMail,
       });
 
       expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
@@ -212,9 +216,9 @@ describe('User Authentication', () => {
       });
     });
 
-    it('should return error for non-existent user', async () => {
+    it(errIfNoUser, async () => {
       const response = await factory.app.post(`${url}/users/forgot-password`).send({
-        email: 'nonexistent@example.com',
+        email: nonExistMail,
       });
 
       expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
@@ -233,14 +237,15 @@ describe('User Authentication', () => {
       });
 
       // Get the reset token from the database
-      const User = (await import('../models/user')).default;
+      const UserModel = await import('../models/user');
+      const User = UserModel.default;
       const user = await User.findOne({ email: testUser.email });
       resetToken = user?.resetPasswordToken as string;
     });
 
     it('should successfully reset password', async () => {
       const response = await factory.app.post(`${url}/users/reset-password/${resetToken}`).send({
-        password: 'NewPassword123!',
+        password: newPassword,
       });
 
       expect(response.status).toBe(HTTP_STATUS.OK);
@@ -252,7 +257,7 @@ describe('User Authentication', () => {
       // Try signing in with new password
       const signInResponse = await factory.app.post(`${url}/users/sign-in`).send({
         email: testUser.email,
-        password: 'NewPassword123!',
+        password: newPassword,
       });
 
       expect(signInResponse.status).toBe(HTTP_STATUS.OK);
@@ -260,7 +265,7 @@ describe('User Authentication', () => {
 
     it('should return error for invalid reset token', async () => {
       const response = await factory.app.post(`${url}/users/reset-password/invalid-token`).send({
-        password: 'NewPassword123!',
+        password: newPassword,
       });
 
       expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
@@ -269,7 +274,8 @@ describe('User Authentication', () => {
 
     it('should return error for expired reset token', async () => {
       // Update the user's reset token expiration to be in the past
-      const User = (await import('../models/user')).default;
+      const UserModel = await import('../models/user');
+      const User = UserModel.default;
       await User.findOneAndUpdate(
         { email: testUser.email },
         { resetPasswordExpires: new Date(Date.now() - 3_600_000) },

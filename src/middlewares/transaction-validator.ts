@@ -1,38 +1,40 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Joi, { Schema } from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
 
 import createTransactionSchema from '../validators/transaction-validator';
 
-const formatJoiError = (error: Joi.ValidationError) => {
-  const formattedError: { [key: string]: string } = {};
-  // eslint-disable-next-line unicorn/no-array-for-each
-  error.details.forEach((detail: Joi.ValidationErrorItem) => {
-    formattedError[detail.path.join('.')] = detail.message;
-  });
-  return formattedError;
-};
+// Use map and Object.fromEntries to create formatted error
+const formatJoiError = (error: Joi.ValidationError): Record<string, string> =>
+  // eslint-disable-next-line implicit-arrow-linebreak
+  Object.fromEntries(error.details.map((detail) => [detail.path.join('.'), detail.message]));
 
-const validateFn = <T extends ParamsDictionary>(
+const validateFn = <T extends Record<string, any>>(
   schema: Schema<T>,
   data: any,
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Response | void => {
   const { error, value } = schema.validate(data);
+
   if (error) {
-    return res.status(400).send(formatJoiError(error));
+    return res.status(400).json(formatJoiError(error));
   }
-  // Assign the validated value back to the request body or params as needed
+
+  // Use spread to create a new object instead of mutating
   if (req.body === data) {
-    req.body = value as T;
+    req.body = { ...value } as T;
   } else {
-    req.params = value as T;
+    req.params = { ...value } as T;
   }
+
   return next();
 };
 
-export const validateCreateTransaction = async (req: Request, res: Response, next: NextFunction) => {
+// Middleware for transaction creation validation
+const validateCreateTransaction = (req: Request, res: Response, next: NextFunction): void => {
   validateFn(createTransactionSchema, req.body, req, res, next);
 };
+
+export default validateCreateTransaction;
