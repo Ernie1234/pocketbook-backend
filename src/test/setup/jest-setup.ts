@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { CONTAINER_NAME, isContainerRunning, setupMongoContainer } from './docker';
 
-export const testDatabaseConfig = {
+const testDatabaseConfig = {
   user: 'test',
   password: 'test',
   port: '27018',
@@ -11,6 +11,7 @@ export const testDatabaseConfig = {
 beforeAll(async () => {
   const isRunning = await isContainerRunning(CONTAINER_NAME);
   if (!isRunning) {
+    // eslint-disable-next-line max-len
     await setupMongoContainer(testDatabaseConfig.user, testDatabaseConfig.password, testDatabaseConfig.port);
   }
 });
@@ -18,3 +19,5 @@ beforeAll(async () => {
 afterAll(async () => {
   await mongoose.connection.close();
 });
+
+export default testDatabaseConfig;

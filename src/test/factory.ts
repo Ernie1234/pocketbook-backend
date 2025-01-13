@@ -4,12 +4,12 @@ import mongoose, { Connection } from 'mongoose';
 import { Server, createServer } from 'node:http';
 import cookieParser from 'cookie-parser';
 
-import { testDatabaseConfig } from './setup/jest-setup';
 import logger from '../logs/logger';
 import userRoute from '../routes/user-route';
 import commodityRoute from '../routes/commodity-route';
 import portfolioRoute from '../routes/portfolio-route';
 import transactionRoute from '../routes/transaction-route';
+import testDatabaseConfig from './setup/jest-setup';
 
 const MONGO_URL = `mongodb://${testDatabaseConfig.user}:${testDatabaseConfig.password}@localhost:${testDatabaseConfig.port}/${testDatabaseConfig.database}?authSource=admin`;
 
@@ -53,7 +53,7 @@ class TestFactory {
       process.env.EMAIL_PORT = '587';
       process.env.EMAIL_FROM = 'test@example.com';
       process.env.FRONTEND_BASE_URL = 'http://localhost:3000';
-      
+
       // Connect to test database with retry logic
       let retries = 5;
       while (retries > 0) {
@@ -65,18 +65,18 @@ class TestFactory {
           retries--;
           if (retries === 0) throw error;
           logger.info(`Failed to connect to MongoDB, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
-      
+
       // Create Express app
       this._app = express();
-      
+
       // Configure middleware
       this._app.use(express.json());
       this._app.use(express.urlencoded({ extended: true }));
       this._app.use(cookieParser(process.env.JWT_SECRET)); // Use JWT_SECRET for cookie signing, but cookies won't be signed in test env
-      
+
       // Configure response headers
       this._app.use((req, res, next) => {
         res.header('Access-Control-Allow-Credentials', 'true');
@@ -84,16 +84,16 @@ class TestFactory {
         res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         next();
       });
-      
+
       // Configure routes
       this._app.use('/api/v1/users', userRoute);
       this._app.use('/api/v1', commodityRoute);
       this._app.use('/api/v1', portfolioRoute);
       this._app.use('/api/v1', transactionRoute);
-      
+
       // Start server
       this._server = createServer(this._app).listen(this._port);
-      
+
       logger.info(`Test server started on port ${this._port}`);
     } catch (error) {
       logger.error('Error in test setup:', error);
