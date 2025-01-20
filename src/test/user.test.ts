@@ -101,7 +101,7 @@ describe('User Authentication', () => {
     it('should return error for invalid credentials', async () => {
       const response = await factory.app.post(`${url}/users/sign-in`).send({
         email: testUser.email,
-        password: 'wrongpassword',
+        password: 'wrongPassword',
       });
 
       expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);

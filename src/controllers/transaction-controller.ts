@@ -66,7 +66,7 @@ export const createTransaction = async (req: Request, res: Response) => {
     await commodity.save();
 
     // Update user's portfolio
-    let portfolio = await Portfolio.findOne({ userId, commodityName });
+    let portfolio = await Portfolio.findOne({ userId, commodityId: commodity.id }, { unique: true });
 
     if (portfolio) {
       // Update the existing portfolio entry

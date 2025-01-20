@@ -1,5 +1,5 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-export default {
+const config = {
   globalSetup: './src/test/setup/jest-setup.ts',
   globalTeardown: './src/test/setup/jest-teardown.ts',
   setupFilesAfterEnv: ['./src/test/setup/jest.setup.ts'],
@@ -13,3 +13,5 @@ export default {
   // Run tests serially on local machine to avoid race conditions on docker resources
   ...(!process.env.CI && { maxWorkers: 1 }),
 };
+
+export default config;

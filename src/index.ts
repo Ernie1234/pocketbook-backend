@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
 });
-app.get('/healthz', (req: Request, res: Response) => {
+app.get('/healths', (req: Request, res: Response) => {
   res.send('Working in good health');
 });
 
