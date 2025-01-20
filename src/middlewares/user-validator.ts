@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 /* eslint-disable max-len */
 /* eslint-disable implicit-arrow-linebreak */
 import { Request, Response, NextFunction, RequestHandler } from 'express';
@@ -15,6 +16,7 @@ import {
 const formatJoiError = (error: Joi.ValidationError): Record<string, string> =>
   // eslint-disable-next-line implicit-arrow-linebreak
   Object.fromEntries(error.details.map((detail) => [detail.path.join('.'), detail.message]));
+// eslint-disable-next-line operator-linebreak
 const validateFn =
   <T>(schema: Schema<T>): RequestHandler =>
   (req: Request, res: Response, next: NextFunction) => {

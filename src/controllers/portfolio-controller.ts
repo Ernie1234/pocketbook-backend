@@ -26,7 +26,7 @@ const getPortfolio = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: serverErrorMsg });
   }
 };
 

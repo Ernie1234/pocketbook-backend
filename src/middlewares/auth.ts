@@ -15,20 +15,21 @@ declare global {
   }
 }
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.cookies?.token;
 
   if (!token) {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'No token provided' });
+    res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'No token provided' });
+    return;
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
     req.userId = decoded.userId;
-    return next();
+    next();
   } catch (error) {
     logger.error('Invalid token', error);
-    return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Invalid token' });
+    res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Invalid token' });
   }
 };
 

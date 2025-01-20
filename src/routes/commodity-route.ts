@@ -20,11 +20,102 @@ const router = express.Router();
 
 const commodityUrl = '/commodities';
 
-router.post(commodityUrl, authMiddleware, validateCreateCommodity, createCommodity);
-router.get(commodityUrl, authMiddleware, getAllCommodities);
-router.get(`${commodityUrl}/:slug`, authMiddleware, validateCommoditySlug, getCommodityBySlug);
-router.get(`${commodityUrl}/:commodityName`, authMiddleware, validateCommodityName, getCommodityByName);
-router.put(commodityUrl, authMiddleware, validateCommodityUpdate, updateCommodity);
-router.delete(`${commodityUrl}/:slug`, authMiddleware, validateCommoditySlug, deleteCommodityBySlug);
+router.post(
+  commodityUrl,
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      await validateCreateCommodity(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      await createCommodity(req, res);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.get(commodityUrl, authMiddleware, async (req, res, next) => {
+  try {
+    await getAllCommodities(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+router.get(
+  `${commodityUrl}/:slug`,
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      await validateCommoditySlug(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      await getCommodityBySlug(req, res);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.get(
+  `${commodityUrl}/:commodityName`,
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      await validateCommodityName(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      await getCommodityByName(req, res);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.put(
+  commodityUrl,
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      await validateCommodityUpdate(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      await updateCommodity(req, res);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.delete(
+  `${commodityUrl}/:slug`,
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      await validateCommoditySlug(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      await deleteCommodityBySlug(req, res);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 export default router;

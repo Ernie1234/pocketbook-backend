@@ -10,11 +10,11 @@ import {
 import HTTP_STATUS from '../utils/http-status';
 import logger from '../logs/logger';
 import User from '../models/user';
+import Commodity from '../models/commodity';
 import { Portfolio } from '../models/portfolio';
 import { Transaction } from '../models/transaction';
 import { Notification } from '../models/notification';
 import { TransactionStatusType, TransactionType } from '../utils/types';
-import Commodity from '../models/commodity';
 
 //  CREATE A transaction
 
@@ -49,60 +49,68 @@ export const createTransaction = async (req: Request, res: Response) => {
     const newTransaction = new Transaction({
       unit,
       price,
-      userId,
-      quantity,
       commodityName,
+      quantity,
       type: TransactionType.BOUGHT,
-      status: TransactionStatusType.SUCCESS,
+      status: TransactionStatusType.PENDING,
+      user: userId,
     });
 
-    const trans = await newTransaction.save();
+    // Save the transaction
+    await newTransaction.save();
 
-    // Find existing portfolio entry
-    const portfolio = await Portfolio.findOne({ userId, commodityName });
+    // Update commodity quantity
+    commodity.quantity -= quantity;
+    await commodity.save();
+
+    // Update user's portfolio
+    let portfolio = await Portfolio.findOne({ userId }, { commodities: 1 });
 
     if (portfolio) {
-      portfolio.totalQuantity += quantity;
-      portfolio.balance += trans.price;
-      await portfolio.save();
+      const existingCommodityIndex = portfolio.commodity.findIndex((c) => c.commodityName === commodityName);
+
+      if (existingCommodityIndex === -1) {
+        portfolio.commodities.push({
+          commodityName,
+          quantity,
+          unit,
+        });
+      } else {
+        portfolio.commodities[existingCommodityIndex].quantity += quantity;
+      }
     } else {
-      // Create a new portfolio entry
-      const newPortfolio = new Portfolio({
-        userId,
-        commodityName,
-        totalQuantity: quantity,
-        balance: price,
-        commodityId: commodity.id,
+      portfolio = new Portfolio({
+        user: userId,
+        commodities: [
+          {
+            commodityName,
+            quantity,
+            unit,
+          },
+        ],
       });
-      await newPortfolio.save();
     }
 
-    // Subtract the quantity from the commodity's quantity
-    if (commodity.quantity !== undefined && commodity.quantity >= quantity) {
-      commodity.quantity -= quantity;
-      await commodity.save(); // Save the updated commodity
-    } else {
-      logger.error(InsufficientCommodityMsg);
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: InsufficientCommodityMsg });
-    }
+    await portfolio.save();
 
-    // Create a notification for the user
-    const title = 'Bought Commodity';
-    const body = `You have added ${commodityName} commodity to your portfolio`;
+    // Create a notification
+    const newNotification = new Notification({
+      user: userId,
+      message: `You have successfully bought ${quantity} ${unit} of ${commodityName}`,
+      type: 'transaction',
+    });
 
-    await Notification.create({ userId, title, body });
+    await newNotification.save();
 
-    return res.status(HTTP_STATUS.OK).json({
+    // Respond with success
+    res.status(HTTP_STATUS.CREATED).json({
       success: true,
-      message: fetchedSuccessMsg,
-      data: {
-        transaction: trans,
-        portfolio,
-      },
+      message: 'Transaction created successfully',
+      data: newTransaction,
     });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: serverErrorMsg });
   }
 };
 
@@ -116,21 +124,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: noUserMsg });
     }
 
-    const userId = user.id; // Get the user ID
-
-    // Fetch transactions for the user, ordered by createdAt in descending order
-    const transactions = await Transaction.find({ userId })
-      .sort({ createdAt: -1 }) // Sort by createdAt in descending order
-      .exec(); // Execute the query
-
-    // Check if transactions are empty
-    if (transactions.length === 0) {
-      return res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: 'No transactions found for this user.',
-        data: [],
-      });
-    }
+    const transactions = await Transaction.find({ userId: req.userId }).sort({ createdAt: -1 });
 
     return res.status(HTTP_STATUS.OK).json({
       success: true,
@@ -139,6 +133,6 @@ export const getAllTransactions = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(error);
-    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: serverErrorMsg });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: serverErrorMsg });
   }
 };
