@@ -2,7 +2,6 @@ import express, { Request, Response, NextFunction, Express } from 'express';
 import supertest from 'supertest';
 import mongoose, { Connection } from 'mongoose';
 import { Server, createServer } from 'node:http';
-import cookieParser from 'cookie-parser';
 
 import logger from '../logs/logger';
 import userRoute from '../routes/user-route';
@@ -62,7 +61,6 @@ class TestFactory {
 
       // Configure middleware
       this._app.use(express.json());
-      this._app.use(cookieParser());
       this._app.use(express.urlencoded({ extended: true }));
 
       // Configure response headers

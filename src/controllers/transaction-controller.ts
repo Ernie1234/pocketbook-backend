@@ -1,3 +1,5 @@
+/* eslint-disable consistent-return */
+/* eslint-disable max-len */
 import { Request, Response } from 'express';
 
 import {
@@ -64,33 +66,25 @@ export const createTransaction = async (req: Request, res: Response) => {
     await commodity.save();
 
     // Update user's portfolio
-    let portfolio = await Portfolio.findOne({ userId }, { commodities: 1 });
+    let portfolio = await Portfolio.findOne({ userId, commodityName });
 
     if (portfolio) {
-      const existingCommodityIndex = portfolio.commodity.findIndex((c) => c.commodityName === commodityName);
-
-      if (existingCommodityIndex === -1) {
-        portfolio.commodities.push({
-          commodityName,
-          quantity,
-          unit,
-        });
-      } else {
-        portfolio.commodities[existingCommodityIndex].quantity += quantity;
-      }
+      // Update the existing portfolio entry
+      portfolio.totalQuantity += Number(quantity);
+      portfolio.balance += price; // Use the correct variable for price
     } else {
+      // Create a new portfolio entry if it doesn't exist
+      const color = `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
       portfolio = new Portfolio({
-        user: userId,
-        commodities: [
-          {
-            commodityName,
-            quantity,
-            unit,
-          },
-        ],
+        userId,
+        commodityName,
+        totalQuantity: Number(quantity),
+        balance: price,
+        color,
       });
     }
 
+    // Save the updated or newly created portfolio
     await portfolio.save();
 
     // Create a notification
