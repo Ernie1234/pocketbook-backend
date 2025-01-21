@@ -90,7 +90,7 @@ export const createCommodity = async (req: Request, res: Response) => {
 //  GET ALL COMMODITIES
 export const getAllCommodities = async (req: Request, res: Response) => {
   try {
-    const commodities = await Commodity.find({})
+    const commodities = await Commodity.find()
       .populate('prices') // Populate the prices reference
       .sort({ createdAt: -1 }); // Sort by createdAt in descending order
 

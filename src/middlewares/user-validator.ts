@@ -29,13 +29,13 @@ const validateFn =
     next();
   };
 
-export const validateUserSignUp: RequestHandler = validateFn(signUpUserSchema);
-export const validateUserResend: RequestHandler = validateFn(resendCodeSchema);
-export const validateVerificationCode: RequestHandler = validateFn(emailVerificationSchema);
-export const validateUserSignIn: RequestHandler = validateFn(signInUserSchema);
-export const validateForgetPassword: RequestHandler = validateFn(forgetPasswordSchema);
+export const validateUserSignUp = validateFn(signUpUserSchema);
+export const validateUserResend = validateFn(resendCodeSchema);
+export const validateVerificationCode = validateFn(emailVerificationSchema);
+export const validateUserSignIn = validateFn(signInUserSchema);
+export const validateForgetPassword = validateFn(forgetPasswordSchema);
 
-export const validateResetPassword: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
+export const validateResetPassword = (req: Request, res: Response, next: NextFunction) => {
   const { token } = req.params;
   const { password } = req.body;
   const { error, value } = resetPasswordSchema.validate({ token, password }, { abortEarly: false });

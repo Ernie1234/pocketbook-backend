@@ -63,19 +63,22 @@ export const createTransaction = async (req: Request, res: Response) => {
 
     // Update commodity quantity
     commodity.quantity -= quantity;
+
     await commodity.save();
 
-    // Update user's portfolio
-    let portfolio = await Portfolio.findOne({ userId, commodityId: commodity.id }, { unique: true });
+    const port = await Portfolio.findOne({ userId, commodityName });
 
-    if (portfolio) {
-      // Update the existing portfolio entry
-      portfolio.totalQuantity += Number(quantity);
-      portfolio.balance += price; // Use the correct variable for price
+    // Update user's portfolio
+    if (port) {
+      // If the portfolio entry exists, update it
+      port.totalQuantity += Number(quantity);
+      port.balance += price;
+
+      await port.save(); // Save the updated portfolio back to the database
     } else {
-      // Create a new portfolio entry if it doesn't exist
+      // If no portfolio entry exists, create a new one
       const color = `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
-      portfolio = new Portfolio({
+      await Portfolio.create({
         userId,
         commodityName,
         totalQuantity: Number(quantity),
@@ -85,7 +88,7 @@ export const createTransaction = async (req: Request, res: Response) => {
     }
 
     // Save the updated or newly created portfolio
-    await portfolio.save();
+    // await portfolio.save();
 
     // Create a notification
     const newNotification = new Notification({
