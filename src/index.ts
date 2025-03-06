@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
 });
-app.get('/healths', (req: Request, res: Response) => {
+app.get('/healthz', (req: Request, res: Response) => {
   res.send('Working in good health');
 });
 
@@ -43,7 +43,7 @@ app.use('/api/v1', transactionRoute);
 
 const start = async () => {
   try {
-    await connectDb(process.env.DATABASE_URL || '');
+    await connectDb(process.env.DATABASE_URI || '');
     app.listen(port, () => {
       logger.info(`Server is started at port: http://localhost:${port}`);
     });
