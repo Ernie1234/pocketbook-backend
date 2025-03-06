@@ -19,13 +19,7 @@ const formatJoiError = (error: Joi.ValidationError) => {
   return formattedError;
 };
 
-const validateFn = <T extends Record<string, any>>(
-  schema: Schema<T>,
-  data: any,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const validateFn = <T extends Record<string, any>>(schema: Schema<T>, data: any, req: Request, res: Response, next: NextFunction) => {
   const { error, value } = schema.validate(data);
   if (error) {
     return res.status(400).send(formatJoiError(error));

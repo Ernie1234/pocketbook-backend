@@ -15,3 +15,9 @@ const config = {
 };
 
 export default config;
+
+// Perform any global setup tasks here
+// export const globalSetup = async () => {
+//   // Example: Set up a global variable
+//   global.__MY_GLOBAL_VARIABLE__ = 'some value';
+// };
